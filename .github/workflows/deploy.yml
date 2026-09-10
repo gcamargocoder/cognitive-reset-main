@@ -1,0 +1,75 @@
+# Compila o projeto com Bun e faz deploy automático na Vercel.
+#
+# Este app é SSR (TanStack Start + nitro) e usa server functions
+# (src/lib/progress.functions.ts) — por isso NÃO roda em hospedagem estática
+# como GitHub Pages. O build usa o preset "vercel" do nitro, que gera
+# .vercel/output/ (Build Output API v3); o deploy sobe esse diretório pronto
+# com `vercel deploy --prebuilt`, sem rebuild do lado da Vercel.
+#
+# ── Secrets necessários no repositório ──────────────────────────────────────
+#   Settings ▸ Secrets and variables ▸ Actions
+#
+#   VERCEL_TOKEN                 Token de conta: vercel.com/account/tokens
+#   VERCEL_ORG_ID               `vercel link` gera .vercel/project.json com orgId
+#   VERCEL_PROJECT_ID           idem, campo projectId
+#   VITE_SUPABASE_URL           inlined no bundle do cliente em tempo de build
+#   VITE_SUPABASE_PUBLISHABLE_KEY
+#   VITE_SUPABASE_PROJECT_ID
+#
+# ── Variáveis de ambiente de RUNTIME (definir no projeto da Vercel, não aqui) ─
+#   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY  → usados pela função SSR
+#   (Project ▸ Settings ▸ Environment Variables). O deploy prebuilt não leva .env.
+
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bunx tsc --noEmit
+
+      - name: Build (Bun + nitro Vercel preset)
+        run: bun run build
+        env:
+          NITRO_PRESET: vercel
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+      - name: Deploy to Vercel (prebuilt)
+        id: deploy
+        run: |
+          url="$(bunx vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deploy de produção: $url" >> "$GITHUB_STEP_SUMMARY"
