@@ -65,7 +65,8 @@ function DayPage() {
   }, [checklist, progress.data?.checklist_state, day]);
 
   const done = progress.data?.completed_days?.includes(day) ?? false;
-  const allChecked = checklist.length > 0 && checks.length === checklist.length && checks.every(Boolean);
+  const allChecked =
+    checklist.length > 0 && checks.length === checklist.length && checks.every(Boolean);
 
   const toggle = (index: number, value: boolean) => {
     const next = checks.map((item, i) => (i === index ? value : item));
@@ -113,28 +114,28 @@ function DayPage() {
       }
     >
       {content.data?.quote ? (
-        <blockquote className="flex gap-3 rounded-3xl bg-gradient-primary p-5 text-primary-foreground shadow-soft">
+        <blockquote className="flex gap-3 rounded-2xl bg-primary p-5 text-primary-foreground shadow-sm">
           <Quote className="h-5 w-5 shrink-0 opacity-80" />
           <p className="text-sm leading-relaxed">{content.data.quote}</p>
         </blockquote>
       ) : null}
 
-      <section className="mt-6 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-soft">
-        <h2 className="text-base font-semibold">A ciência por trás</h2>
+      <section className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <h2 className="text-base font-semibold text-foreground">A ciência por trás</h2>
         <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
           {content.data?.science}
         </p>
       </section>
 
       <section className="mt-6">
-        <h2 className="mb-3 text-base font-semibold">
+        <h2 className="mb-3 text-base font-semibold text-foreground">
           Prática de hoje: {content.data?.technique}
         </h2>
         {technique ? <ToolRenderer technique={technique} day={day} /> : null}
       </section>
 
-      <section className="mt-6 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-soft">
-        <h2 className="text-base font-semibold">Checklist do dia</h2>
+      <section className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <h2 className="text-base font-semibold text-foreground">Checklist do dia</h2>
         <ul className="mt-3 space-y-3">
           {checklist.map((item, index) => (
             <li key={item} className="flex items-start gap-3">
@@ -152,7 +153,7 @@ function DayPage() {
         </ul>
 
         {done ? (
-          <p className="mt-5 rounded-2xl bg-mint/20 px-4 py-3 text-sm">
+          <p className="mt-5 rounded-xl bg-mint/40 px-4 py-3 text-sm text-mint-foreground">
             Você já concluiu este dia. Pode revisitar a prática sempre que quiser.
           </p>
         ) : (

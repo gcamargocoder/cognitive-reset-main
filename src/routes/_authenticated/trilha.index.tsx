@@ -80,29 +80,27 @@ function TrilhaPage() {
   const currentDay = progress.data?.current_day ?? 1;
   const left = useCountdown(progress.data?.unlock_at);
   const locked = left > 0;
+  const pct = Math.round((completed.length / 30) * 100);
 
   return (
     <AppShell title="Trilha de 30 dias" subtitle={`Dia ${currentDay} de 30`}>
+      {/* Barra de progresso geral — minimalista e motivadora */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        className="relative overflow-hidden rounded-[1.75rem] border border-border/50 bg-card/85 p-5 shadow-soft backdrop-blur-sm"
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="rounded-2xl border border-border bg-card p-5 shadow-sm"
       >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-mint/30 blur-2xl"
-        />
-        <div className="relative flex items-center justify-between text-sm">
-          <span className="font-medium">{completed.length} de 30 dias concluídos</span>
-          <span className="tabular-nums text-muted-foreground">
-            {Math.round((completed.length / 30) * 100)}%
+        <div className="flex items-baseline justify-between">
+          <span className="text-sm font-medium text-foreground">
+            {completed.length} de 30 dias concluídos
           </span>
+          <span className="text-sm font-semibold tabular-nums text-primary">{pct}%</span>
         </div>
-        <Progress value={(completed.length / 30) * 100} className="relative mt-3" />
+        <Progress value={pct} className="mt-3" />
         {locked ? (
-          <p className="relative mt-4 flex items-start gap-2 rounded-2xl bg-primary/10 px-4 py-3 text-sm">
-            <Timer className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <p className="mt-4 flex items-start gap-2 rounded-xl bg-serene/10 px-4 py-3 text-sm text-foreground">
+            <Timer className="mt-0.5 h-4 w-4 shrink-0 text-serene" />
             <span>
               Próximo dia libera em <strong className="tabular-nums">{formatLeft(left)}</strong>. Um
               dia por vez — o cérebro precisa desse intervalo para consolidar.
@@ -116,37 +114,50 @@ function TrilhaPage() {
           const done = completed.includes(day.day);
           const isCurrent = day.day === currentDay;
           const available = done || (isCurrent && !locked);
+          const waiting = isCurrent && locked;
+
           const content = (
             <div
               className={cn(
-                "group relative flex items-center gap-4 overflow-hidden rounded-[1.6rem] border border-border/50 bg-card/85 p-4 shadow-soft backdrop-blur-sm transition-all duration-300",
+                "flex items-center gap-4 rounded-2xl border p-4 shadow-sm transition-all duration-200",
+                done && "border-mint bg-mint/30",
+                available && !done && "border-serene bg-card ring-1 ring-serene/40",
                 available && "hover:-translate-y-0.5 hover:shadow-lift",
-                !available && "opacity-55",
-                isCurrent && !locked && "border-primary/40 shadow-glow",
+                waiting && "border-border bg-card",
+                !available && !waiting && "border-border bg-card opacity-55",
               )}
             >
               <div
                 className={cn(
-                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold tabular-nums transition-transform duration-300 group-hover:scale-105",
-                  done
-                    ? "bg-mint text-mint-foreground"
-                    : isCurrent
-                      ? "bg-gradient-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground",
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold tabular-nums",
+                  done && "bg-mint text-mint-foreground",
+                  available && !done && "bg-serene text-serene-foreground",
+                  !available && "bg-muted text-muted-foreground",
                 )}
               >
                 {done ? <Check className="h-5 w-5" strokeWidth={2.4} /> : day.day}
               </div>
+
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{day.title}</p>
+                {available && !done ? (
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-serene">
+                    Em andamento
+                  </span>
+                ) : null}
+                <p className="truncate text-sm font-semibold text-foreground">{day.title}</p>
                 <p className="truncate text-xs text-muted-foreground">{day.technique}</p>
               </div>
+
               {available ? (
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-transform duration-300 group-hover:translate-x-0.5">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
                   <Play className="h-3.5 w-3.5 fill-current" />
                 </span>
+              ) : waiting ? (
+                <span className="shrink-0 text-xs font-medium tabular-nums text-muted-foreground">
+                  {formatLeft(left)}
+                </span>
               ) : (
-                <Lock className="h-4 w-4 text-muted-foreground" />
+                <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
               )}
             </div>
           );
@@ -154,9 +165,9 @@ function TrilhaPage() {
           return (
             <motion.li
               key={day.day}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: Math.min(i, 8) * 0.04 }}
+              transition={{ duration: 0.26, delay: Math.min(i, 8) * 0.035 }}
             >
               {available ? (
                 <Link

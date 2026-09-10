@@ -58,13 +58,13 @@ Crie um aplicativo web responsivo no formato Progressive Web App (PWA) instaláv
 
 - **Conteúdo do Dia Liberado:**
 
-  1. *A Ciência Por Trás:* Explicação didática e leve em texto/áudio.
+  1. _A Ciência Por Trás:_ Explicação didática e leve em texto/áudio.
 
-  2. *Mídia Demonstrativa:* Player de vídeo/áudio ou infográfico visual da técnica.
+  2. _Mídia Demonstrativa:_ Player de vídeo/áudio ou infográfico visual da técnica.
 
-  3. *Passo a Passo Interativo:* Checklist para marcar o progresso.
+  3. _Passo a Passo Interativo:_ Checklist para marcar o progresso.
 
-  4. *Ferramenta Interativa:* Cronômetros/timers embutidos para respirações ou diário digital configurado para o tema do dia (Ex: Brain Dump de 10 min com botão virtual de "Rasgar/Limpar Papel", Tribunal dos Pensamentos, Registro dos 3 Momentos).
+  4. _Ferramenta Interativa:_ Cronômetros/timers embutidos para respirações ou diário digital configurado para o tema do dia (Ex: Brain Dump de 10 min com botão virtual de "Rasgar/Limpar Papel", Tribunal dos Pensamentos, Registro dos 3 Momentos).
 
 #### B. Tela / Modal "SOS Emergência" (Acesso Rápido Fixo no Header)
 
@@ -108,25 +108,24 @@ Acesso direto para consulta livre de todas as 18 técnicas do Método LIBERTAÇ�
 
 - Aplicar políticas RLS (Row Level Security) para garantir a segurança dos dados pessoais.
 
-This project was built with [Lovable](https://lovable.dev).
+## Stack
 
-**Live app**: https://cognitive-reset.lovable.app
+- **TanStack Start** (SSR) + React 19 + TypeScript
+- **Tailwind CSS v4** + shadcn/ui + Lucide icons + Motion
+- **Supabase** (Auth com e-mail/senha e Google, Postgres com RLS)
+- PWA instalável (webmanifest + Service Worker)
 
-## Build with Lovable
+## Desenvolvimento
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/f22ec2fc-6a95-482d-9c0a-bae9c9b7d5fd).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Requer [Bun](https://bun.sh).
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+bun install
+bun run dev      # servidor de desenvolvimento
+bun run build    # build de produção
+bun run preview  # pré-visualiza o build
+bun run lint     # eslint
+bun run format   # prettier --write
 ```
+
+Variáveis de ambiente do Supabase ficam em `.env` (veja `.env` de exemplo no repositório).

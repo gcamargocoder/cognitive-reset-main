@@ -1,10 +1,11 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
-<!-- LOVABLE:END -->
+# Notas para agentes
+
+- Este é um app **TanStack Start** (SSR). Não existe `index.html`: o `<head>`,
+  título e meta tags são definidos em `src/routes/__root.tsx` via `head()`.
+- **Tailwind v4**: não há `tailwind.config.ts`. Os tokens de design (cores,
+  raios, sombras) vivem em `src/styles.css` (`@theme` + `:root` / `.dark`).
+- Gerenciador de pacotes: **Bun** (`bun install`, `bun run build`).
+- Mantenha a branch em estado funcional: rode `bun run build` e
+  `bunx tsc --noEmit` antes de finalizar.
+- Regra de negócio da Trilha de 30 dias (trava de 24h, `completed_days`,
+  `unlock_at`) não deve ser alterada sem pedido explícito.
