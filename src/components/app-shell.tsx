@@ -27,8 +27,38 @@ export function AppShell({
   const [sosOpen, setSosOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  const renderItem = ({ to, label, icon: Icon }: (typeof items)[number]) => {
+    const active = pathname.startsWith(to);
+    return (
+      <li key={to} className="relative">
+        <Link
+          to={to}
+          className={cn(
+            "relative flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-[11px] font-medium transition-colors duration-200 sm:text-xs",
+            active ? "text-primary-foreground" : "text-muted-foreground",
+          )}
+        >
+          <AnimatePresence initial={false}>
+            {active ? (
+              <motion.span
+                layoutId="nav-pill"
+                aria-hidden
+                className="absolute inset-0 rounded-xl bg-primary"
+                transition={{ type: "spring", stiffness: 420, damping: 34 }}
+              />
+            ) : null}
+          </AnimatePresence>
+          <span className="relative">
+            <Icon className="h-5 w-5 sm:h-[22px] sm:w-[22px]" strokeWidth={active ? 2.2 : 1.8} />
+          </span>
+          <span className="relative">{label}</span>
+        </Link>
+      </li>
+    );
+  };
+
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-calm pb-32 no-scrollbar">
+    <div className="relative min-h-screen overflow-x-hidden bg-calm pb-28 no-scrollbar">
       <header className="sticky top-0 z-20 border-b border-border bg-background/85 px-5 py-4 backdrop-blur-lg">
         <div className="mx-auto grid max-w-2xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <motion.div
@@ -57,49 +87,23 @@ export function AppShell({
         {children}
       </motion.main>
 
-      <motion.button
-        type="button"
-        onClick={() => setSosOpen(true)}
-        aria-label="Abrir SOS emocional"
-        whileTap={{ scale: 0.94 }}
-        whileHover={{ scale: 1.03 }}
-        className="fixed bottom-28 right-5 z-30 flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-2xl bg-sos text-sos-foreground shadow-lift"
-      >
-        <LifeBuoy className="h-5 w-5" strokeWidth={2.2} />
-        <span className="text-[10px] font-bold leading-none tracking-wide">SOS</span>
-      </motion.button>
-
       <nav className="fixed inset-x-0 bottom-0 z-20 px-4 pb-4">
-        <ul className="mx-auto grid max-w-md grid-cols-4 gap-1 rounded-2xl border border-border bg-background/90 p-1.5 shadow-lift backdrop-blur-lg">
-          {items.map(({ to, label, icon: Icon }) => {
-            const active = pathname.startsWith(to);
-            return (
-              <li key={to} className="relative">
-                <Link
-                  to={to}
-                  className={cn(
-                    "relative flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-[11px] font-medium transition-colors duration-200",
-                    active ? "text-primary-foreground" : "text-muted-foreground",
-                  )}
-                >
-                  <AnimatePresence initial={false}>
-                    {active ? (
-                      <motion.span
-                        layoutId="nav-pill"
-                        aria-hidden
-                        className="absolute inset-0 rounded-xl bg-primary"
-                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                      />
-                    ) : null}
-                  </AnimatePresence>
-                  <span className="relative">
-                    <Icon className="h-5 w-5" strokeWidth={active ? 2.2 : 1.8} />
-                  </span>
-                  <span className="relative">{label}</span>
-                </Link>
-              </li>
-            );
-          })}
+        <ul className="relative mx-auto grid max-w-md grid-cols-5 items-end gap-1 rounded-2xl border border-border bg-background/90 p-1.5 shadow-lift backdrop-blur-lg sm:max-w-lg sm:gap-2 sm:p-2 md:max-w-xl">
+          {items.slice(0, 2).map(renderItem)}
+          <li className="relative flex items-end justify-center">
+            <motion.button
+              type="button"
+              onClick={() => setSosOpen(true)}
+              aria-label="Abrir SOS emocional"
+              whileTap={{ scale: 0.94 }}
+              whileHover={{ scale: 1.03 }}
+              className="relative -top-5 flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-2xl bg-sos text-sos-foreground shadow-lift ring-4 ring-background sm:h-16 sm:w-16"
+            >
+              <LifeBuoy className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.2} />
+              <span className="text-[10px] font-bold leading-none tracking-wide sm:text-xs">SOS</span>
+            </motion.button>
+          </li>
+          {items.slice(2).map(renderItem)}
         </ul>
       </nav>
 
