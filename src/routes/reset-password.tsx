@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { firstIssueMessage, resetPasswordSchema } from "@/lib/validation";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -30,6 +31,11 @@ function ResetPasswordPage() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const validation = resetPasswordSchema.safeParse({ password });
+    if (!validation.success) {
+      toast.error(firstIssueMessage(validation));
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.auth.updateUser({ password });
     setBusy(false);
@@ -42,7 +48,7 @@ function ResetPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-calm px-5 py-12">
+    <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-calm px-5 py-12">
       <Card className="w-full max-w-md rounded-3xl border-border/60 shadow-soft">
         <CardContent className="p-6">
           <h1 className="text-2xl font-semibold">Definir nova senha</h1>

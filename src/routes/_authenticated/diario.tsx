@@ -8,6 +8,7 @@ import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { JOURNAL_TEXT_MAX_LENGTH, firstIssueMessage, journalTextSchema } from "@/lib/validation";
 
 export const Route = createFileRoute("/_authenticated/diario")({
   component: DiarioPage,
@@ -68,7 +69,11 @@ function DiarioPage() {
   });
 
   const save = async () => {
-    if (!text.trim()) return;
+    const validation = journalTextSchema.safeParse(text);
+    if (!validation.success) {
+      toast.error(firstIssueMessage(validation));
+      return;
+    }
     setBusy(true);
     const { data: auth } = await supabase.auth.getUser();
     if (!auth.user) {
@@ -80,7 +85,7 @@ function DiarioPage() {
       user_id: auth.user.id,
       kind: "livre",
       title: "Anotação livre",
-      content: { texto: text.trim() } as never,
+      content: { texto: validation.data } as never,
     });
     setBusy(false);
     if (error) {
@@ -118,13 +123,13 @@ function DiarioPage() {
         ))}
       </div>
 
-
       <section className="mt-6 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-soft">
         <h2 className="text-base font-semibold">Como você está agora?</h2>
         <Textarea
           className="mt-3 min-h-28"
           placeholder="Escreva sem filtro. Ninguém além de você lê isso."
           value={text}
+          maxLength={JOURNAL_TEXT_MAX_LENGTH}
           onChange={(event) => setText(event.target.value)}
         />
         <Button className="mt-3 w-full tap-scale" onClick={save} disabled={busy || !text.trim()}>

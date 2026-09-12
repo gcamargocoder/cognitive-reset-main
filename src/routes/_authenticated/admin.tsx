@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -12,11 +12,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) throw redirect({ to: "/auth" });
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", auth.user.id);
+    const isAdmin = (data ?? []).some((r) => r.role === "admin");
+    if (!isAdmin) throw redirect({ to: "/trilha" });
+  },
   component: AdminPage,
 });
 
 function AdminPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState(1);
   const [title, setTitle] = useState("");
@@ -25,28 +32,7 @@ function AdminPage() {
   const [quote, setQuote] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const access = useQuery({
-    queryKey: ["is-admin"],
-    queryFn: async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) return false;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", auth.user.id);
-      return (data ?? []).some((r) => r.role === "admin");
-    },
-  });
-
-  useEffect(() => {
-    if (access.isSuccess && access.data === false) {
-      toast.error("Área restrita a administradores.");
-      navigate({ to: "/trilha", replace: true });
-    }
-  }, [access.isSuccess, access.data, navigate]);
-
   const days = useQuery({
-    enabled: access.data === true,
     queryKey: ["daily-contents"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -76,20 +62,12 @@ function AdminPage() {
       .eq("day", selected);
     setBusy(false);
     if (error) {
-      toast.error(error.message);
+      toast.error("Não foi possível salvar agora. Tente novamente.");
       return;
     }
     toast.success(`Dia ${selected} atualizado.`);
     queryClient.invalidateQueries({ queryKey: ["daily-contents"] });
   };
-
-  if (access.data !== true) {
-    return (
-      <AppShell title="Administração">
-        <p className="text-sm text-muted-foreground">Verificando permissões…</p>
-      </AppShell>
-    );
-  }
 
   return (
     <AppShell title="Administração" subtitle="Conteúdo da trilha de 30 dias">

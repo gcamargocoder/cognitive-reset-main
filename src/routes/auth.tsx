@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
+import { emailSchema, firstIssueMessage, signInSchema, signUpSchema } from "@/lib/validation";
 
 const authSearchSchema = z.object({
   mode: z.enum(["in", "up"]).optional(),
@@ -52,6 +53,15 @@ function AuthPage() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const validation =
+      mode === "up"
+        ? signUpSchema.safeParse({ name, email, password })
+        : signInSchema.safeParse({ email, password });
+    if (!validation.success) {
+      toast.error(firstIssueMessage(validation));
+      return;
+    }
+
     setBusy(true);
     if (mode === "up") {
       const { data, error } = await supabase.auth.signUp({
@@ -87,8 +97,9 @@ function AuthPage() {
   };
 
   const reset = async () => {
-    if (!email) {
-      toast.error("Digite seu e-mail primeiro.");
+    const validation = emailSchema.safeParse(email);
+    if (!validation.success) {
+      toast.error(firstIssueMessage(validation));
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -99,12 +110,14 @@ function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-calm px-5 py-12">
+    <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-calm px-5 py-12">
       <Card className="w-full max-w-md rounded-3xl border-border/60 shadow-soft">
         <CardContent className="p-6">
           <h1 className="text-2xl font-semibold">Método LIBERTAÇÃO</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mode === "in" ? "Entre para continuar sua trilha." : "Crie sua conta e comece o Dia 1."}
+            {mode === "in"
+              ? "Entre para continuar sua trilha."
+              : "Crie sua conta e comece o Dia 1."}
           </p>
 
           {sent ? (

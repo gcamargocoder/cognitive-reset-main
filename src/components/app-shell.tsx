@@ -58,8 +58,8 @@ export function AppShell({
   };
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-calm pb-28 no-scrollbar">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/85 px-5 py-4 backdrop-blur-lg">
+    <div className="relative min-h-screen overflow-x-hidden bg-calm pb-[calc(7rem+env(safe-area-inset-bottom))] no-scrollbar">
+      <header className="sticky top-0 z-20 border-b border-border bg-background/85 px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-lg">
         <div className="mx-auto grid max-w-2xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <motion.div
             key={title}
@@ -87,7 +87,7 @@ export function AppShell({
         {children}
       </motion.main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-20 px-4 pb-4">
+      <nav className="fixed inset-x-0 bottom-0 z-20 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <ul className="relative mx-auto grid max-w-md grid-cols-5 items-end gap-1 rounded-2xl border border-border bg-background/90 p-1.5 shadow-lift backdrop-blur-lg sm:max-w-lg sm:gap-2 sm:p-2 md:max-w-xl">
           {items.slice(0, 2).map(renderItem)}
           <li className="relative flex items-end justify-center">

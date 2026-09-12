@@ -30,7 +30,7 @@ export function SosSheet({
 
   return (
     <Sheet open={open} onOpenChange={close}>
-      <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-3xl">
+      <SheetContent side="bottom" className="max-h-[92dvh] overflow-y-auto rounded-t-3xl">
         <SheetHeader className="text-left">
           <SheetTitle>SOS emocional</SheetTitle>
           <SheetDescription>
@@ -39,10 +39,10 @@ export function SosSheet({
         </SheetHeader>
 
         {!mode ? (
-          <div className="grid gap-3 px-4 pb-8">
+          <div className="grid gap-3 pb-[calc(2rem+env(safe-area-inset-bottom))]">
             <Button
               size="lg"
-              className="h-auto justify-start gap-3 bg-sos py-4 text-left text-sos-foreground hover:bg-sos/90"
+              className="h-auto w-full justify-start gap-3 bg-sos py-4 text-left text-sos-foreground hover:bg-sos/90"
               onClick={() => setMode("panico")}
             >
               <HeartPulse className="h-6 w-6 shrink-0" />
@@ -54,7 +54,7 @@ export function SosSheet({
             <Button
               size="lg"
               variant="secondary"
-              className="h-auto justify-start gap-3 py-4 text-left"
+              className="h-auto w-full justify-start gap-3 py-4 text-left"
               onClick={() => setMode("ansiedade")}
             >
               <Wind className="h-6 w-6 shrink-0" />
@@ -71,12 +71,13 @@ export function SosSheet({
             </p>
           </div>
         ) : (
-          <div className="space-y-4 px-4 pb-8">
-            <div className="flex flex-wrap gap-2">
+          <div className="space-y-4 pb-[calc(2rem+env(safe-area-inset-bottom))]">
+            <div className="flex w-full flex-col gap-2">
               {list.map((item, i) => (
                 <Button
                   key={item.slug}
-                  size="sm"
+                  size="lg"
+                  className="h-11 w-full justify-center text-center"
                   variant={i === index ? "default" : "outline"}
                   onClick={() => setIndex(i)}
                 >
@@ -97,7 +98,7 @@ export function SosSheet({
                 <ToolRenderer technique={technique} />
               </>
             ) : null}
-            <Button variant="ghost" className="w-full" onClick={() => setMode(null)}>
+            <Button variant="ghost" className="h-11 w-full" onClick={() => setMode(null)}>
               Voltar
             </Button>
           </div>

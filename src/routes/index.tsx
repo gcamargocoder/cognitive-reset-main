@@ -45,7 +45,7 @@ const pillars = [
 
 function Landing() {
   return (
-    <div className="min-h-screen bg-calm">
+    <div className="min-h-screen overflow-x-hidden bg-calm">
       <main className="mx-auto max-w-2xl px-6 pb-20 pt-16">
         <motion.div
           initial={{ opacity: 0, y: 12 }}

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import { JOURNAL_TEXT_MAX_LENGTH } from "@/lib/validation";
 import type { Technique } from "@/lib/library";
 
 type Phase = { label: string; secs: number };
@@ -73,7 +74,11 @@ function BreathingTool({ pattern, cycles }: { pattern: Phase[]; cycles: number }
       <CardContent className="flex flex-col items-center gap-5 py-8">
         <motion.div
           animate={{ scale: running ? [0.85, 1.08, 0.85] : 1 }}
-          transition={{ duration: current.secs * 2, repeat: running ? Infinity : 0, ease: "easeInOut" }}
+          transition={{
+            duration: current.secs * 2,
+            repeat: running ? Infinity : 0,
+            ease: "easeInOut",
+          }}
           className="flex h-40 w-40 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground shadow-lift"
         >
           <span className="text-4xl font-semibold">{left}</span>
@@ -190,10 +195,15 @@ function BrainDumpTool({ minutes, day }: { minutes: number; day?: number | undef
         <Textarea
           rows={10}
           value={text}
+          maxLength={JOURNAL_TEXT_MAX_LENGTH}
           onChange={(e) => setText(e.target.value)}
           placeholder="Escreva tudo que vier à cabeça, sem organizar, sem corrigir, sem julgar..."
         />
-        <Button className="w-full tap-scale" disabled={saving || !text.trim()} onClick={() => save({ text })}>
+        <Button
+          className="w-full tap-scale"
+          disabled={saving || !text.trim()}
+          onClick={() => save({ text })}
+        >
           <Save className="mr-2 h-4 w-4" />
           Salvar no diário
         </Button>
@@ -225,6 +235,7 @@ function PromptsTool({
             <Textarea
               rows={3}
               value={answers[i]}
+              maxLength={JOURNAL_TEXT_MAX_LENGTH}
               onChange={(e) =>
                 setAnswers((prev) => prev.map((a, ai) => (ai === i ? e.target.value : a)))
               }
@@ -334,7 +345,10 @@ function DiveTool() {
           ))}
         </ol>
         <div className="flex items-center justify-between gap-3">
-          <Button variant="secondary" onClick={() => setStep((s) => Math.min(DIVE_STEPS.length - 1, s + 1))}>
+          <Button
+            variant="secondary"
+            onClick={() => setStep((s) => Math.min(DIVE_STEPS.length - 1, s + 1))}
+          >
             Próximo passo
           </Button>
           <div className="flex items-center gap-2">
@@ -389,10 +403,15 @@ function SurfTool() {
         <Textarea
           rows={3}
           value={note}
+          maxLength={JOURNAL_TEXT_MAX_LENGTH}
           placeholder="Descreva a sensação como um observador: 'sinto o peito apertado e isso está passando'."
           onChange={(e) => setNote(e.target.value)}
         />
-        <Button className="w-full tap-scale" disabled={saving} onClick={() => save({ level, note })}>
+        <Button
+          className="w-full tap-scale"
+          disabled={saving}
+          onClick={() => save({ level, note })}
+        >
           <Save className="mr-2 h-4 w-4" />
           Registrar a onda
         </Button>
@@ -443,7 +462,13 @@ function ContractTool() {
   );
 }
 
-export function ToolRenderer({ technique, day }: { technique: Technique; day?: number | undefined }) {
+export function ToolRenderer({
+  technique,
+  day,
+}: {
+  technique: Technique;
+  day?: number | undefined;
+}) {
   const config = (technique.toolConfig ?? {}) as {
     pattern?: Phase[];
     cycles?: number;
@@ -454,7 +479,12 @@ export function ToolRenderer({ technique, day }: { technique: Technique; day?: n
 
   switch (technique.tool) {
     case "breathing":
-      return <BreathingTool pattern={config.pattern ?? [{ label: "Inspire", secs: 4 }]} cycles={config.cycles ?? 5} />;
+      return (
+        <BreathingTool
+          pattern={config.pattern ?? [{ label: "Inspire", secs: 4 }]}
+          cycles={config.cycles ?? 5}
+        />
+      );
     case "grounding":
       return <GroundingTool day={day} />;
     case "braindump":
