@@ -41,7 +41,7 @@ export function IrritabilitySosFlow({ onFinish }: { onFinish: () => void }) {
         </p>
         <Button
           size="lg"
-          className="h-auto w-full justify-start gap-3 bg-sos py-4 text-left text-sos-foreground hover:bg-sos/90"
+          className="h-auto w-full justify-start gap-3 whitespace-normal bg-sos py-4 text-left text-sos-foreground hover:bg-sos/90"
           onClick={() => {
             setPhase("cold");
             setLeft(COLD_SECS);

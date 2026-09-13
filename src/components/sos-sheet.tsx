@@ -57,7 +57,7 @@ export function SosSheet({
           <div className="grid gap-3 pb-[calc(2rem+env(safe-area-inset-bottom))]">
             <Button
               size="lg"
-              className="h-auto w-full justify-start gap-3 bg-sos py-4 text-left text-sos-foreground hover:bg-sos/90"
+              className="h-auto w-full justify-start gap-3 whitespace-normal bg-sos py-4 text-left text-sos-foreground hover:bg-sos/90"
               onClick={() => setMode("panico")}
             >
               <HeartPulse className="h-6 w-6 shrink-0" />
@@ -71,7 +71,7 @@ export function SosSheet({
             <Button
               size="lg"
               variant="secondary"
-              className="h-auto w-full justify-start gap-3 py-4 text-left"
+              className="h-auto w-full justify-start gap-3 whitespace-normal py-4 text-left"
               onClick={() => setMode("ansiedade")}
             >
               <Wind className="h-6 w-6 shrink-0" />
@@ -85,7 +85,7 @@ export function SosSheet({
             <Button
               size="lg"
               variant="outline"
-              className="h-auto w-full justify-start gap-3 border-sos/40 py-4 text-left"
+              className="h-auto w-full justify-start gap-3 whitespace-normal border-sos/40 py-4 text-left"
               onClick={() => setMode("irritabilidade")}
             >
               <Flame className="h-6 w-6 shrink-0 text-sos" />
