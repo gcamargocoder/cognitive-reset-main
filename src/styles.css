@@ -209,7 +209,7 @@
     transform: scale(1);
   }
   50% {
-    transform: scale(1.08);
+    transform: scale(1.32);
   }
 }
 
@@ -259,11 +259,11 @@
 }
 
 @utility heart-beat {
-  animation: heart-beat 32s ease-in-out infinite;
+  animation: heart-beat 8s ease-in-out infinite;
 }
 
 @utility heart-ring {
-  animation: heart-ring 32s ease-out infinite;
+  animation: heart-ring 8s ease-out infinite;
 }
 
 @utility tap-scale {

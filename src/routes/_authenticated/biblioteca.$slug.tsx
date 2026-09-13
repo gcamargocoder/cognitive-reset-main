@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { ToolRenderer } from "@/components/tools/tool-renderer";
 import { TonePlayer } from "@/components/tone-player";
-import { findTechnique } from "@/lib/library";
+import { findTechnique, findTechniqueSession } from "@/lib/library";
 
 export const Route = createFileRoute("/_authenticated/biblioteca/$slug")({
   component: TechniquePage,
@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca/$slug")({
 function TechniquePage() {
   const { slug } = Route.useParams();
   const technique = findTechnique(slug);
+  const sessionSlug = findTechniqueSession(slug);
 
   if (!technique) {
     return (
@@ -31,7 +32,7 @@ function TechniquePage() {
       subtitle={`Técnica ${technique.number}`}
       action={
         <Button asChild variant="ghost" size="icon" aria-label="Voltar para a biblioteca">
-          <Link to="/biblioteca">
+          <Link to="/biblioteca" search={{ session: sessionSlug }}>
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>

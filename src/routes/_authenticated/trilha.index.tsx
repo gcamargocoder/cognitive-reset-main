@@ -83,7 +83,7 @@ function TrilhaPage() {
   const pct = Math.round((completed.length / 30) * 100);
 
   return (
-    <AppShell title="Trilha de 30 dias" subtitle={`Dia ${currentDay} de 30`}>
+    <AppShell title="Trilha de 30 dias" subtitle={`Dia ${currentDay} de 30`} confirmExitOnBack>
       {/* Barra de progresso geral — minimalista e motivadora */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}

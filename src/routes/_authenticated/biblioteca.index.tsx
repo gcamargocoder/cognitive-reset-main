@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "motion/react";
 import { ChevronRight, ChevronDown } from "lucide-react";
+import { z } from "zod";
 
 import { AppShell } from "@/components/app-shell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -9,7 +10,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { cn } from "@/lib/utils";
 import { SESSIONS } from "@/lib/library";
 
+const SESSION_SLUGS = SESSIONS.map((s) => s.slug) as [string, ...string[]];
+
+const bibliotecaSearchSchema = z.object({
+  session: z.enum(SESSION_SLUGS).optional(),
+});
+
 export const Route = createFileRoute("/_authenticated/biblioteca/")({
+  validateSearch: bibliotecaSearchSchema,
   component: BibliotecaPage,
 });
 
@@ -106,9 +114,19 @@ function SessionPanel({ session, index }: { session: (typeof SESSIONS)[number]; 
 }
 
 function BibliotecaPage() {
+  const { session } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const activeSession = session ?? SESSIONS[0]!.slug;
+
   return (
     <AppShell title="Sessões & Biblioteca" subtitle="21 técnicas para usar quando precisar">
-      <Tabs defaultValue={SESSIONS[0]!.slug} className="w-full">
+      <Tabs
+        value={activeSession}
+        onValueChange={(value) =>
+          navigate({ search: { session: value as typeof activeSession }, replace: true })
+        }
+        className="w-full"
+      >
         <TabsList className="grid h-auto w-full grid-cols-4 gap-1 rounded-2xl bg-muted p-1">
           {SESSIONS.map((session) => (
             <TabsTrigger

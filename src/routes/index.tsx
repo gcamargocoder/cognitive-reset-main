@@ -1,9 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { motion } from "motion/react";
 import { Brain, HeartPulse, NotebookPen, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { InstallAppBanner } from "@/components/install-app-banner";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -44,6 +46,15 @@ const pillars = [
 ];
 
 function Landing() {
+  const { session, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && session) navigate({ to: "/trilha", replace: true });
+  }, [loading, session, navigate]);
+
+  if (loading || session) return null;
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-calm">
       <main className="mx-auto max-w-2xl px-6 pb-20 pt-16">

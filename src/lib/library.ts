@@ -610,6 +610,11 @@ export function findTechnique(slug: string) {
   return ALL_TECHNIQUES.find((t) => t.slug === slug);
 }
 
+/** Sessão à qual uma técnica pertence na Biblioteca, para o botão voltar manter a aba certa. */
+export function findTechniqueSession(slug: string) {
+  return SESSIONS.find((s) => s.techniques.some((t) => t.slug === slug))?.slug;
+}
+
 /** Técnicas usadas nos atalhos de SOS. */
 export const SOS = {
   panico: [mergulho, surfar],

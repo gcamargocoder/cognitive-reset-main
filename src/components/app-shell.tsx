@@ -5,8 +5,19 @@ import { motion, AnimatePresence } from "motion/react";
 
 import { SosSheet } from "./sos-sheet";
 import { DonateDialog } from "./donate-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { SosContext, type SosMode } from "@/lib/sos-context";
+import { useExitConfirm } from "@/hooks/use-exit-confirm";
 
 const items = [
   { to: "/trilha", label: "Trilha", icon: CalendarCheck },
@@ -20,15 +31,19 @@ export function AppShell({
   subtitle,
   children,
   action,
+  confirmExitOnBack = false,
 }: {
   title: string;
   subtitle?: string;
   children: ReactNode;
   action?: ReactNode;
+  /** Mostra confirmação antes de sair do app ao voltar (use só na tela inicial). */
+  confirmExitOnBack?: boolean;
 }) {
   const [sosOpen, setSosOpen] = useState(false);
   const [sosMode, setSosMode] = useState<SosMode | undefined>(undefined);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { open: exitOpen, confirmExit, cancelExit } = useExitConfirm(confirmExitOnBack);
 
   const openSos = (mode?: SosMode) => {
     setSosMode(mode);
@@ -69,7 +84,8 @@ export function AppShell({
     <SosContext.Provider value={{ open: openSos }}>
       <div className="relative min-h-screen overflow-x-hidden bg-calm pb-[calc(3.75rem+env(safe-area-inset-bottom))] no-scrollbar">
         <header className="sticky top-0 z-20 border-b border-border bg-background/85 px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-lg">
-          <div className="mx-auto grid max-w-2xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <div className="mx-auto grid max-w-2xl grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+            {action}
             <motion.div
               key={title}
               initial={{ opacity: 0, y: 6 }}
@@ -84,7 +100,6 @@ export function AppShell({
                 <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
               ) : null}
             </motion.div>
-            {action}
           </div>
         </header>
 
@@ -122,6 +137,21 @@ export function AppShell({
         </nav>
 
         <SosSheet open={sosOpen} onOpenChange={setSosOpen} initialMode={sosMode} />
+
+        <AlertDialog open={exitOpen} onOpenChange={(next) => !next && cancelExit()}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Sair do aplicativo?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Deseja realmente sair do Método LIBERTAÇÃO?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={cancelExit}>Não</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmExit}>Sim, sair</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </SosContext.Provider>
   );
