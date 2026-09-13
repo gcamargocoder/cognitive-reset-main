@@ -87,3 +87,54 @@ export const saveChecklistState = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/** Salva a assinatura do Contrato de Compromisso (Dia 1) dentro de checklist_state. */
+export const saveContractStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        name: z.string().min(1),
+        commitments: z.array(z.string()),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: progress } = await context.supabase
+      .from("user_progress")
+      .select("checklist_state")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    const current = (progress?.checklist_state ?? {}) as Record<string, unknown>;
+    const contractStatus = {
+      name: data.name,
+      commitments: data.commitments,
+      signedAt: new Date().toISOString(),
+    };
+    const { error } = await context.supabase
+      .from("user_progress")
+      .update({ checklist_state: { ...current, contract: contractStatus } })
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true, contract: contractStatus };
+  });
+
+/** Reinicia a jornada: zera dias concluídos, checklist e assinatura do contrato. */
+export const resetProgress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: row, error } = await context.supabase
+      .from("user_progress")
+      .update({
+        current_day: 1,
+        completed_days: [],
+        checklist_state: {},
+        completed_at: null,
+        unlock_at: null,
+      })
+      .eq("user_id", context.userId)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });

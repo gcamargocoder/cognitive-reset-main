@@ -42,7 +42,10 @@ export function SosSheet({
 
   return (
     <Sheet open={open} onOpenChange={close}>
-      <SheetContent side="bottom" className="max-h-[92dvh] overflow-y-auto rounded-t-3xl">
+      <SheetContent
+        side="bottom"
+        className="mx-auto max-h-[92dvh] w-full max-w-[92vw] overflow-y-auto break-words rounded-t-3xl px-4 sm:max-w-lg sm:px-6"
+      >
         <SheetHeader className="text-left">
           <SheetTitle>SOS emocional</SheetTitle>
           <SheetDescription>

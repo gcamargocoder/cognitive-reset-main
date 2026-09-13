@@ -270,7 +270,7 @@ const vago: Technique = {
 
 const mapa: Technique = {
   slug: "mapeamento-de-crises",
-  number: 16,
+  number: 10,
   name: "Mapeamento de Crises",
   whatWhy:
     "Registrar o que aconteceu antes, durante e depois de uma crise revela padrões — e entender o padrão devolve a sensação de controle.",
@@ -295,7 +295,7 @@ const mapa: Technique = {
 
 const tribunal: Technique = {
   slug: "tribunal-dos-pensamentos",
-  number: 10,
+  number: 11,
   name: "O Tribunal dos Pensamentos",
   whatWhy:
     "Julgar um pensamento autocrítico como se fosse um caso em tribunal — com provas dos dois lados — mostra que ele não é uma sentença definitiva.",
@@ -321,7 +321,7 @@ const tribunal: Technique = {
 
 const desfusao: Technique = {
   slug: "desfusao-cognitiva",
-  number: 11,
+  number: 12,
   name: "Desfusão Cognitiva",
   whatWhy:
     "Trocar 'eu sou um fracasso' por 'estou percebendo o pensamento de que sou um fracasso' muda a relação com o pensamento, mesmo sem mudar o conteúdo dele.",
@@ -346,7 +346,7 @@ const desfusao: Technique = {
 
 const tresMomentos: Technique = {
   slug: "registro-dos-3-momentos",
-  number: 12,
+  number: 13,
   name: "Registro dos 3 Momentos",
   whatWhy:
     "A depressão filtra o que é bom para fora da atenção. Registrar momentos concretos todos os dias treina o cérebro a notá-los de novo.",
@@ -371,7 +371,7 @@ const tresMomentos: Technique = {
 
 const passos: Technique = {
   slug: "passos-ridiculamente-pequenos",
-  number: 13,
+  number: 14,
   name: "Passos Ridiculamente Pequenos",
   whatWhy:
     "Na depressão, a ação vem antes da vontade, não depois. Um passo tão pequeno que é quase impossível não fazer já libera a dopamina que falta.",
@@ -392,7 +392,7 @@ const passos: Technique = {
 
 const ritmico: Technique = {
   slug: "movimento-ritmico",
-  number: 14,
+  number: 15,
   name: "Movimento Rítmico",
   whatWhy:
     "Movimentos repetitivos e ritmados aumentam substâncias no cérebro ligadas a energia e humor, ajudando a sair do estado de torpor.",
@@ -412,7 +412,7 @@ const ritmico: Technique = {
 
 const coerente: Technique = {
   slug: "respiracao-coerente",
-  number: 15,
+  number: 16,
   name: "Respiração Coerente",
   whatWhy:
     "Respirar em torno de 6 vezes por minuto sincroniza coração e respiração, o que melhora a capacidade do corpo de se acalmar sozinho.",

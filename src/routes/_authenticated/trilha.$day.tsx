@@ -10,7 +10,8 @@ import { ToolRenderer } from "@/components/tools/tool-renderer";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
-import { completeDay, saveChecklistState } from "@/lib/progress.functions";
+import { completeDay, saveChecklistState, saveContractStatus } from "@/lib/progress.functions";
+import type { ContractStatus } from "@/components/tools/tool-renderer";
 import type { Technique } from "@/lib/library";
 
 export const Route = createFileRoute("/_authenticated/trilha/$day")({
@@ -24,6 +25,7 @@ function DayPage() {
   const queryClient = useQueryClient();
   const finishDay = useServerFn(completeDay);
   const saveState = useServerFn(saveChecklistState);
+  const signContract = useServerFn(saveContractStatus);
   const [checks, setChecks] = useState<boolean[]>([]);
   const [busy, setBusy] = useState(false);
 
@@ -63,6 +65,15 @@ function DayPage() {
     const saved = (progress.data?.checklist_state ?? {}) as Record<string, boolean[]>;
     setChecks(saved[String(day)] ?? checklist.map(() => false));
   }, [checklist, progress.data?.checklist_state, day]);
+
+  const contractStatus = (
+    progress.data?.checklist_state as Record<string, unknown> | null | undefined
+  )?.["contract"] as ContractStatus | undefined;
+
+  const handleSignContract = async (data: { name: string; commitments: string[] }) => {
+    await signContract({ data });
+    await queryClient.invalidateQueries({ queryKey: ["progress"] });
+  };
 
   const done = progress.data?.completed_days?.includes(day) ?? false;
   const allChecked =
@@ -131,7 +142,14 @@ function DayPage() {
         <h2 className="mb-3 text-base font-semibold text-foreground">
           Prática de hoje: {content.data?.technique}
         </h2>
-        {technique ? <ToolRenderer technique={technique} day={day} /> : null}
+        {technique ? (
+          <ToolRenderer
+            technique={technique}
+            day={day}
+            contractStatus={contractStatus}
+            onSignContract={handleSignContract}
+          />
+        ) : null}
       </section>
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm">

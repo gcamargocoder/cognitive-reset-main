@@ -4,7 +4,6 @@ import { type ReactNode, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 import { SosSheet } from "./sos-sheet";
-import { DonateDialog } from "./donate-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -102,10 +101,6 @@ export function AppShell({
             </motion.div>
           </div>
         </header>
-
-        <div className="fixed right-4 top-[calc(1rem+env(safe-area-inset-top))] z-30">
-          <DonateDialog />
-        </div>
 
         <motion.main
           key={pathname}

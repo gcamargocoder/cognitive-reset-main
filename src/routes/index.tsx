@@ -1,11 +1,12 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { motion } from "motion/react";
-import { Brain, HeartPulse, NotebookPen, Sparkles } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Share, Smartphone, Apple, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { InstallAppBanner } from "@/components/install-app-banner";
+import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
+import { useInstallPrompt } from "@/hooks/use-install-prompt";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,92 +28,173 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const pillars = [
+const SKIP_KEY = "pwa-onboarding-skipped";
+
+const IOS_STEPS = [
   {
-    icon: Brain,
-    title: "Trilha de 30 dias",
-    body: "Um passo por dia, com ciência explicada em linguagem simples e checklist para fechar o ciclo.",
+    label: "Toque no ícone de Compartilhar",
+    detail: "É o quadrado com uma seta para cima, na barra do Safari.",
   },
   {
-    icon: HeartPulse,
-    title: "SOS emocional",
-    body: "Botão de emergência com respiração e ancoragem guiadas para o momento da crise.",
+    label: 'Selecione "Adicionar à Tela de Início"',
+    detail: "Role a lista de opções para baixo até encontrar essa ação.",
   },
   {
-    icon: NotebookPen,
-    title: "Diário e evolução",
-    body: "Registre o que sentiu e acompanhe sua constância ao longo das semanas.",
+    label: 'Toque em "Adicionar"',
+    detail: "No canto superior direito, para confirmar.",
   },
 ];
 
 function Landing() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
+  const { canInstall, isStandalone, promptInstall } = useInstallPrompt();
+  const [showIosSteps, setShowIosSteps] = useState(false);
+  const [installing, setInstalling] = useState(false);
+  const [skipped] = useState(
+    () => typeof window !== "undefined" && localStorage.getItem(SKIP_KEY) === "1",
+  );
+
+  const bypassOnboarding = isStandalone || skipped;
 
   useEffect(() => {
     if (!loading && session) navigate({ to: "/trilha", replace: true });
   }, [loading, session, navigate]);
 
-  if (loading || session) return null;
+  useEffect(() => {
+    if (!loading && !session && bypassOnboarding) {
+      navigate({ to: "/auth", replace: true });
+    }
+  }, [loading, session, bypassOnboarding, navigate]);
+
+  if (loading || session || bypassOnboarding) return null;
+
+  const goToAuth = () => navigate({ to: "/auth" });
+
+  const chooseAndroid = async () => {
+    setInstalling(true);
+    try {
+      if (canInstall) await promptInstall();
+    } finally {
+      setInstalling(false);
+      goToAuth();
+    }
+  };
+
+  const skipInstall = () => {
+    try {
+      localStorage.setItem(SKIP_KEY, "1");
+    } catch {
+      // localStorage indisponível (modo privado); só não lembra na próxima visita.
+    }
+    goToAuth();
+  };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-calm">
-      <main className="mx-auto max-w-2xl px-6 pb-20 pt-16">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            <Sparkles className="h-3.5 w-3.5" /> Baseado em neurociência
-          </span>
-          <h1 className="mt-5 text-[2.75rem] font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-            Método LIBERTAÇÃO
-          </h1>
-          <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-            Um caminho de 30 dias para entender o que acontece no seu corpo e aprender, com
-            gentileza, a regular ansiedade, crises de pânico e desânimo.
-          </p>
+    <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-calm px-5 py-12">
+      <Card className="w-full max-w-md rounded-3xl border-border/60 shadow-soft">
+        <CardContent className="p-6">
+          <AnimatePresence mode="wait">
+            {showIosSteps ? (
+              <motion.div
+                key="ios-steps"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+              >
+                <Share className="h-7 w-7 text-primary" />
+                <h1 className="mt-3 text-xl font-semibold sm:text-2xl">
+                  Instalar no iPhone (Safari)
+                </h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Leva menos de 10 segundos. Siga os passos abaixo:
+                </p>
 
-          <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-            <Button asChild size="lg" className="tap-scale h-14 text-base">
-              <Link to="/auth" search={{ mode: "up" }}>
-                Criar conta
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="tap-scale h-14 text-base">
-              <Link to="/auth" search={{ mode: "in" }}>
-                Já tenho conta
-              </Link>
-            </Button>
-          </div>
-        </motion.div>
+                <ol className="mt-5 space-y-4">
+                  {IOS_STEPS.map((step, i) => (
+                    <li key={step.label} className="flex gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
+                        {i + 1}
+                      </span>
+                      <span>
+                        <span className="block text-sm font-semibold leading-snug text-foreground">
+                          {step.label}
+                        </span>
+                        <span className="block text-xs text-muted-foreground">{step.detail}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ol>
 
-        <div className="mt-10">
-          <InstallAppBanner />
-        </div>
+                <Button
+                  size="lg"
+                  className="tap-scale mt-6 h-14 w-full text-base"
+                  onClick={goToAuth}
+                >
+                  <Check className="mr-2 h-5 w-5" />
+                  Entender e Continuar para o App
+                </Button>
+                <button
+                  type="button"
+                  className="mt-3 w-full text-center text-sm text-muted-foreground underline-offset-4 hover:underline"
+                  onClick={() => setShowIosSteps(false)}
+                >
+                  Voltar
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="choose-platform"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+              >
+                <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <Smartphone className="h-3.5 w-3.5" /> Método LIBERTAÇÃO
+                </span>
+                <h1 className="mt-4 text-2xl font-semibold leading-tight sm:text-[1.75rem]">
+                  Leve o app no seu bolso
+                </h1>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem]">
+                  Instale na tela inicial do seu celular para abrir mais rápido, receber lembretes e
+                  usar o SOS mesmo offline. Escolha seu aparelho:
+                </p>
 
-        <div className="mt-10 grid gap-5">
-          {pillars.map(({ icon: Icon, title, body }, i) => (
-            <motion.div
-              key={title}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: 0.1 + i * 0.08 }}
-              className="rounded-3xl border border-border/60 bg-card/80 p-6 shadow-soft"
-            >
-              <Icon className="h-7 w-7 text-primary" />
-              <h2 className="mt-3 text-xl font-semibold">{title}</h2>
-              <p className="mt-1.5 text-base text-muted-foreground">{body}</p>
-            </motion.div>
-          ))}
-        </div>
+                <div className="mt-6 flex flex-col gap-3">
+                  <Button
+                    size="lg"
+                    className="tap-scale h-14 w-full text-base"
+                    disabled={installing}
+                    onClick={chooseAndroid}
+                  >
+                    <Smartphone className="mr-2 h-5 w-5" />
+                    Android
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="tap-scale h-14 w-full text-base"
+                    onClick={() => setShowIosSteps(true)}
+                  >
+                    <Apple className="mr-2 h-5 w-5" />
+                    iOS (iPhone)
+                  </Button>
+                </div>
 
-        <p className="mt-14 text-sm leading-relaxed text-muted-foreground">
-          Este aplicativo é material de apoio educativo e não substitui acompanhamento profissional.
-          Em risco imediato, ligue 188 (CVV) ou procure emergência.
-        </p>
-      </main>
+                <button
+                  type="button"
+                  className="mt-5 w-full text-center text-sm text-muted-foreground underline-offset-4 hover:underline"
+                  onClick={skipInstall}
+                >
+                  Continuar no navegador sem instalar
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </CardContent>
+      </Card>
     </div>
   );
 }

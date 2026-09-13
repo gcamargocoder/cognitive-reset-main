@@ -411,21 +411,67 @@ function SurfTool() {
   );
 }
 
-function ContractTool() {
+export type ContractStatus = { name: string; commitments: string[]; signedAt: string };
+
+const CONTRACT_LABELS = [
+  "Vou praticar pelo menos uma técnica por dia.",
+  "Vou tratar recaídas como parte do processo, não como fracasso.",
+  "Vou pedir ajuda profissional se precisar.",
+  "Vou falar comigo com o cuidado que ofereço a quem amo.",
+];
+
+function ContractTool({
+  signed,
+  onSign,
+}: {
+  signed: ContractStatus | null | undefined;
+  onSign: (data: { name: string; commitments: string[] }) => Promise<void>;
+}) {
   const [name, setName] = useState("");
   const [commitments, setCommitments] = useState([false, false, false, false]);
-  const { save, saving } = useJournalSave("contract", "Contrato de Compromisso");
-  const labels = [
-    "Vou praticar pelo menos uma técnica por dia.",
-    "Vou tratar recaídas como parte do processo, não como fracasso.",
-    "Vou pedir ajuda profissional se precisar.",
-    "Vou falar comigo com o cuidado que ofereço a quem amo.",
-  ];
+  const { save } = useJournalSave("contract", "Contrato de Compromisso");
+  const [saving, setSaving] = useState(false);
+
+  if (signed) {
+    return (
+      <Card className="border-mint bg-mint/20">
+        <CardContent className="space-y-3 py-6">
+          <div className="flex items-center gap-2 text-mint-foreground">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mint">
+              <Check className="h-4 w-4" strokeWidth={2.6} />
+            </span>
+            <span className="font-semibold">Assinado / Concluído</span>
+          </div>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            {signed.commitments.map((label) => (
+              <li key={label} className="flex items-start gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-mint-foreground" />
+                <span>{label}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-sm">
+            Assinado por <strong>{signed.name}</strong>.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const submit = async () => {
+    setSaving(true);
+    try {
+      await onSign({ name, commitments: CONTRACT_LABELS });
+      await save({ name, commitments: CONTRACT_LABELS });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Card>
       <CardContent className="space-y-4 py-6">
-        {labels.map((label, i) => (
+        {CONTRACT_LABELS.map((label, i) => (
           <label key={label} className="flex items-start gap-3 text-sm">
             <Checkbox
               checked={commitments[i] ?? false}
@@ -444,7 +490,7 @@ function ContractTool() {
           size="lg"
           className="w-full tap-scale"
           disabled={saving || !name.trim() || commitments.some((c) => !c)}
-          onClick={() => save({ name, commitments: labels })}
+          onClick={submit}
         >
           <Check className="mr-2 h-4 w-4" />
           Assinar compromisso
@@ -826,9 +872,13 @@ function EscalationDiaryTool() {
 export function ToolRenderer({
   technique,
   day,
+  contractStatus,
+  onSignContract,
 }: {
   technique: Technique;
   day?: number | undefined;
+  contractStatus?: ContractStatus | null | undefined;
+  onSignContract?: (data: { name: string; commitments: string[] }) => Promise<void>;
 }) {
   const config = (technique.toolConfig ?? {}) as {
     pattern?: Phase[];
@@ -840,7 +890,7 @@ export function ToolRenderer({
 
   return (
     <ToolErrorBoundary key={technique.slug}>
-      {renderTool(technique, config, prompts, day)}
+      {renderTool(technique, config, prompts, day, contractStatus, onSignContract)}
     </ToolErrorBoundary>
   );
 }
@@ -850,6 +900,8 @@ function renderTool(
   config: { pattern?: Phase[]; cycles?: number; minutes?: number },
   prompts: string[],
   day: number | undefined,
+  contractStatus?: ContractStatus | null | undefined,
+  onSignContract?: (data: { name: string; commitments: string[] }) => Promise<void>,
 ) {
   switch (technique.tool) {
     case "breathing":
@@ -870,7 +922,7 @@ function renderTool(
     case "surf":
       return <SurfTool />;
     case "contract":
-      return <ContractTool />;
+      return <ContractTool signed={contractStatus} onSign={onSignContract ?? (async () => {})} />;
     case "pmr":
       return <PmrTool />;
     case "somatic-scan":

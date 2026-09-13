@@ -1,14 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Check, Lock, Play, Timer } from "lucide-react";
+import { Check, Lock, PartyPopper, Play, RotateCcw, Timer } from "lucide-react";
 import { motion } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { bootstrapMe } from "@/lib/progress.functions";
+import { bootstrapMe, resetProgress } from "@/lib/progress.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/trilha/")({
@@ -40,6 +52,11 @@ export function formatLeft(ms: number) {
 
 function TrilhaPage() {
   const bootstrap = useServerFn(bootstrapMe);
+  const doReset = useServerFn(resetProgress);
+  const queryClient = useQueryClient();
+  const [confirmingReset, setConfirmingReset] = useState(false);
+  const [dismissedCongrats, setDismissedCongrats] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   const progress = useQuery({
     queryKey: ["progress"],
@@ -81,6 +98,28 @@ function TrilhaPage() {
   const left = useCountdown(progress.data?.unlock_at);
   const locked = left > 0;
   const pct = Math.round((completed.length / 30) * 100);
+  const journeyComplete = completed.length >= 30;
+  const showCongrats = journeyComplete && !dismissedCongrats;
+
+  const closeCongrats = () => {
+    setDismissedCongrats(true);
+    setConfirmingReset(false);
+  };
+
+  const handleReset = async () => {
+    setResetting(true);
+    try {
+      await doReset();
+      await queryClient.invalidateQueries({ queryKey: ["progress"] });
+      setConfirmingReset(false);
+      setDismissedCongrats(false);
+      toast.success("Jornada reiniciada. Vamos começar do zero!");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível reiniciar agora.");
+    } finally {
+      setResetting(false);
+    }
+  };
 
   return (
     <AppShell title="Trilha de 30 dias" subtitle={`Dia ${currentDay} de 30`} confirmExitOnBack>
@@ -106,6 +145,20 @@ function TrilhaPage() {
               dia por vez — o cérebro precisa desse intervalo para consolidar.
             </span>
           </p>
+        ) : null}
+        {journeyComplete ? (
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-4 w-full tap-scale"
+            onClick={() => {
+              setDismissedCongrats(false);
+              setConfirmingReset(true);
+            }}
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Reiniciar Jornada (Reset)
+          </Button>
         ) : null}
       </motion.div>
 
@@ -184,6 +237,67 @@ function TrilhaPage() {
           );
         })}
       </ul>
+
+      <AlertDialog
+        open={showCongrats}
+        onOpenChange={(next) => {
+          if (!next) closeCongrats();
+        }}
+      >
+        <AlertDialogContent>
+          {confirmingReset ? (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reiniciar sua jornada?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Isso vai apagar todo o progresso da trilha (dias concluídos, checklist e o
+                  contrato assinado) e começar o ciclo do zero. Seu Diário pessoal não será afetado.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setConfirmingReset(false)} disabled={resetting}>
+                  Voltar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void handleReset();
+                  }}
+                  disabled={resetting}
+                >
+                  {resetting ? "Reiniciando..." : "Sim, reiniciar"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          ) : (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <PartyPopper className="h-5 w-5 text-primary" />
+                  Parabéns!
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Você concluiu todos os 30 dias do Método LIBERTAÇÃO! Cada técnica praticada
+                  fortaleceu um caminho novo no seu cérebro. Você pode continuar revisitando os dias
+                  sempre que precisar, ou reiniciar a jornada do zero.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={closeCongrats}>Fechar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setConfirmingReset(true);
+                  }}
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Reiniciar Jornada (Reset)
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
