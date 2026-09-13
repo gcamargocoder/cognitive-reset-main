@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Lightbulb } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { ToolRenderer } from "@/components/tools/tool-renderer";
+import { TonePlayer } from "@/components/tone-player";
 import { findTechnique } from "@/lib/library";
 
 export const Route = createFileRoute("/_authenticated/biblioteca/$slug")({
@@ -36,9 +37,13 @@ function TechniquePage() {
         </Button>
       }
     >
-      <section className="rounded-3xl border border-border/60 bg-card/80 p-5 shadow-soft">
-        <h2 className="text-sm font-semibold text-primary">Quando usar</h2>
-        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{technique.when}</p>
+      {technique.frequency ? (
+        <TonePlayer src={technique.frequency.src} label={technique.frequency.label} />
+      ) : null}
+
+      <section className="mt-6 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-soft">
+        <h2 className="text-sm font-semibold text-primary">O que é e por que funciona</h2>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{technique.whatWhy}</p>
       </section>
 
       {technique.caution ? (
@@ -48,29 +53,39 @@ function TechniquePage() {
         </div>
       ) : null}
 
-      {technique.steps.length > 0 ? (
-        <section className="mt-6 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-soft">
-          <h2 className="text-base font-semibold">Passo a passo</h2>
-          <ol className="mt-3 space-y-2 text-sm leading-relaxed">
-            {technique.steps.map((step, index) => (
-              <li key={step} className="flex gap-3">
-                <span className="font-semibold text-primary">{index + 1}.</span>
-                <span>{step}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
+      <section className="mt-6 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-soft">
+        <h2 className="text-base font-semibold">Preparação</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          {technique.preparation}
+        </p>
+      </section>
+
+      <section className="mt-6 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-soft">
+        <h2 className="text-base font-semibold">Passo a passo guiado</h2>
+        <ol className="mt-3 space-y-3 text-sm leading-relaxed">
+          {technique.steps.map((step, index) => (
+            <li key={step} className="flex gap-3">
+              <span className="font-semibold text-primary">Passo {index + 1}.</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
 
       <section className="mt-6">
         <h2 className="mb-3 text-base font-semibold">Praticar agora</h2>
         <ToolRenderer technique={technique} />
       </section>
 
-      <section className="mt-6 rounded-3xl border border-border/60 bg-card/60 p-5">
-        <h2 className="text-base font-semibold">Por que funciona</h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{technique.why}</p>
-      </section>
+      {technique.tip ? (
+        <section className="mt-6 flex gap-3 rounded-3xl border border-primary/25 bg-primary-soft/40 p-4 text-sm">
+          <Lightbulb className="h-5 w-5 shrink-0 text-primary" />
+          <p>
+            <span className="font-semibold">Dica de apoio: </span>
+            {technique.tip}
+          </p>
+        </section>
+      ) : null}
     </AppShell>
   );
 }

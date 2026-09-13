@@ -17,6 +17,7 @@ const TAB_LABELS: Record<string, string> = {
   ansiedade: "Ansiedade",
   panico: "Pânico",
   depressao: "Depressão",
+  irritabilidade: "Irritabilidade",
 };
 
 function SessionPanel({ session, index }: { session: (typeof SESSIONS)[number]; index: number }) {
@@ -87,11 +88,11 @@ function SessionPanel({ session, index }: { session: (typeof SESSIONS)[number]; 
                   {technique.number}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-foreground">
+                  <span className="block text-sm font-semibold leading-snug text-foreground">
                     {technique.name}
                   </span>
                   <span className="line-clamp-2 text-xs text-muted-foreground">
-                    {technique.when}
+                    {technique.whatWhy}
                   </span>
                 </span>
                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
@@ -106,14 +107,14 @@ function SessionPanel({ session, index }: { session: (typeof SESSIONS)[number]; 
 
 function BibliotecaPage() {
   return (
-    <AppShell title="Sessões & Biblioteca" subtitle="18 técnicas para usar quando precisar">
+    <AppShell title="Sessões & Biblioteca" subtitle="21 técnicas para usar quando precisar">
       <Tabs defaultValue={SESSIONS[0]!.slug} className="w-full">
-        <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-2xl bg-muted p-1">
+        <TabsList className="grid h-auto w-full grid-cols-4 gap-1 rounded-2xl bg-muted p-1">
           {SESSIONS.map((session) => (
             <TabsTrigger
               key={session.slug}
               value={session.slug}
-              className="rounded-xl py-2 data-[state=active]:shadow-sm"
+              className="rounded-xl px-1 py-2 text-[11px] data-[state=active]:shadow-sm sm:text-sm"
             >
               {TAB_LABELS[session.slug] ?? session.title}
             </TabsTrigger>

@@ -2,36 +2,79 @@ export type Technique = {
   slug: string;
   number: number;
   name: string;
-  when: string;
+  /** O que é e por que funciona (1-2 frases). */
+  whatWhy: string;
+  /** Preparação: postura ou ambiente ideal. */
+  preparation: string;
+  /** Passo a passo guiado — instruções de ação diretas. */
   steps: string[];
-  why: string;
-  tool: "breathing" | "grounding" | "braindump" | "journal" | "tribunal" | "steps" | "timer" | "dive" | "surf" | "contract" | "none";
+  /** Dica de apoio opcional para quando a pessoa sentir dificuldade. */
+  tip?: string;
+  /** Frequência sonora recomendada para tocar durante o exercício. */
+  frequency?: { hz: number; label: string; src: string };
+  tool:
+    | "breathing"
+    | "grounding"
+    | "braindump"
+    | "journal"
+    | "tribunal"
+    | "steps"
+    | "timer"
+    | "dive"
+    | "surf"
+    | "contract"
+    | "pmr"
+    | "somatic-scan"
+    | "escalation-diary"
+    | "none";
   toolConfig?: Record<string, unknown>;
   caution?: string;
 };
 
 export type Session = {
-  slug: "ansiedade" | "panico" | "depressao";
+  slug: "ansiedade" | "panico" | "depressao" | "irritabilidade";
   title: string;
   subtitle: string;
   science: { heading: string; body: string }[];
   techniques: Technique[];
 };
 
+const FREQ_ANSIEDADE = {
+  hz: 432,
+  label: "432 Hz — Relaxamento e Desaceleração",
+  src: "/audio/frequencia-ansiedade.mp3",
+};
+const FREQ_PANICO = {
+  hz: 396,
+  label: "396 Hz — Alívio de Medo e Aterramento",
+  src: "/audio/frequencia-panico.mp3",
+};
+const FREQ_DEPRESSAO = {
+  hz: 528,
+  label: "528 Hz — Clareza e Renovação de Energia",
+  src: "/audio/frequencia-depressao.mp3",
+};
+const FREQ_IRRITABILIDADE = {
+  hz: 432,
+  label: "432 Hz — Alívio de Tensão e Impulsividade",
+  src: "/audio/frequencia-irritabilidade.mp3",
+};
+
 const recomeco: Technique = {
   slug: "respiracao-do-recomeco",
   number: 1,
   name: "Respiração do Recomeço (Suspiro Fisiológico)",
-  when: "Quando o coração está acelerado, a respiração está curta ou existe aquela sensação de urgência difícil de controlar.",
+  whatWhy:
+    "Duas inspiradas pelo nariz seguidas de uma expiração longa pela boca. É a forma mais rápida de baixar a ativação do corpo, porque remove o excesso de gás carbônico do sangue em poucos ciclos.",
+  preparation: "Sente-se ou deite em uma posição confortável. Não precisa fechar os olhos.",
   steps: [
-    "Sente-se ou deite em qualquer posição confortável — não precisa fechar os olhos.",
     "Inspire pelo nariz de forma rápida, por cerca de 2 segundos.",
-    "Ainda pelo nariz, inspire um pouco mais, como se enchesse os pulmões até o limite.",
-    "Solte todo o ar pela boca, devagar, com um som suave de 'ahhh', por 6 segundos.",
-    "Repita o ciclo completo mais 2 vezes (3 ciclos no total).",
-    "Depois, respire normalmente e observe como o corpo responde.",
+    "Ainda pelo nariz, puxe um pouco mais de ar, como se completasse os pulmões.",
+    "Solte todo o ar pela boca, bem devagar, por cerca de 6 segundos.",
+    "Repita o ciclo mais 2 vezes (3 ciclos no total) e depois volte a respirar normalmente.",
   ],
-  why: "Esse padrão remove rapidamente o excesso de dióxido de carbono do sangue — um dos principais responsáveis pela sensação de sufocamento. O cérebro recebe o sinal: estamos seguros.",
+  tip: "Se sentir tontura, pare e respire normalmente por um minuto antes de tentar de novo.",
+  frequency: FREQ_ANSIEDADE,
   tool: "breathing",
   toolConfig: {
     pattern: [
@@ -47,15 +90,17 @@ const ancoragem: Technique = {
   slug: "ancoragem-5-4-3-2-1",
   number: 2,
   name: "Ancoragem no Presente (5-4-3-2-1)",
-  when: "Quando a mente entra em espiral, você se sente desconectado ou a ansiedade te leva para um futuro catastrófico.",
+  whatWhy:
+    "Nomear coisas concretas ao seu redor tira a mente de pensamentos catastróficos e traz a atenção de volta para o momento presente, onde você está seguro.",
+  preparation: "Fique onde estiver. Não precisa se mover, só olhar e perceber ao redor.",
   steps: [
-    "Olhe ao redor e nomeie 5 coisas que você vê.",
-    "Perceba 4 coisas que você pode tocar — e toque, se puder.",
-    "Escute e nomeie 3 sons.",
-    "Identifique 2 cheiros (ou dois cheiros de que você gosta).",
-    "Nomeie 1 sabor, ou algo que você gostaria de sentir o sabor.",
+    "Nomeie 5 coisas que você consegue ver agora.",
+    "Nomeie 4 coisas que você pode tocar — toque nelas se conseguir.",
+    "Nomeie 3 sons que você escuta neste momento.",
+    "Nomeie 2 cheiros e 1 sabor (real ou lembrado) para fechar o exercício.",
   ],
-  why: "O cérebro não consegue catastrofizar e catalogar o presente ao mesmo tempo. Nomear estímulos concretos reengaja o córtex pré-frontal e retira potência do circuito do medo.",
+  tip: "Se não conseguir sentir cheiro ou sabor agora, vale nomear um de que você gosta.",
+  frequency: FREQ_ANSIEDADE,
   tool: "grounding",
 };
 
@@ -63,15 +108,17 @@ const quadrada: Technique = {
   slug: "respiracao-quadrada",
   number: 3,
   name: "Respiração Quadrada (Box Breathing)",
-  when: "Para ansiedade constante de fundo, tensão acumulada ou antes de situações que você já sabe que ativam o alarme.",
+  whatWhy:
+    "Respirar em quatro tempos iguais ativa o sistema nervoso que acalma o corpo e ajuda a regular o coração acelerado.",
+  preparation: "Sente-se com a coluna ereta, mãos apoiadas no colo ou nas pernas.",
   steps: [
     "Inspire pelo nariz contando até 4.",
     "Segure o ar contando até 4.",
-    "Expire pela boca contando até 4.",
-    "Fique sem ar contando até 4 — e reinicie.",
-    "Faça 5 ciclos completos, sem forçar.",
+    "Solte o ar pela boca contando até 4.",
+    "Fique sem ar contando até 4 e recomece — faça 5 ciclos completos, sem forçar.",
   ],
-  why: "Ciclos iguais ativam o sistema nervoso parassimpático e aumentam a variabilidade da frequência cardíaca, o freio natural do corpo.",
+  tip: "Se contar até 4 for difícil, comece contando até 3 e vá aumentando aos poucos.",
+  frequency: FREQ_ANSIEDADE,
   tool: "breathing",
   toolConfig: {
     pattern: [
@@ -88,15 +135,18 @@ const braindump: Technique = {
   slug: "brain-dump",
   number: 4,
   name: "Brain Dump (Descarga Mental)",
-  when: "Quando a cabeça não para, os pensamentos se repetem em loop ou você não consegue dormir de tanto pensar.",
+  whatWhy:
+    "Escrever tudo o que vem à cabeça, sem filtro, tira os pensamentos repetitivos da sua mente e os coloca no papel, aliviando a sobrecarga.",
+  preparation:
+    "Pegue papel e caneta, ou abra um bloco de notas. Separe 10 minutos sem interrupções.",
   steps: [
-    "Programe 10 minutos.",
-    "Escreva tudo o que vier à cabeça, sem organizar e sem corrigir.",
-    "Pode ser frases soltas, palavras, reclamações, medos, raiva — tudo.",
-    "Quando o tempo terminar, pare de escrever.",
-    "Se quiser, 'rasgue' o papel. O objetivo é tirar de dentro, não guardar.",
+    "Programe um cronômetro de 10 minutos.",
+    "Escreva tudo o que vier à cabeça, sem organizar e sem se corrigir.",
+    "Pode ser frase solta, palavra repetida, reclamação ou medo — não precisa fazer sentido.",
+    "Quando o tempo acabar, pare de escrever. Se quiser, rasgue ou apague o que escreveu.",
   ],
-  why: "Pensamentos repetitivos ocupam a memória de trabalho e mantêm o alarme ligado. A escrita expressiva transfere essa carga para fora e reduz a ativação emocional.",
+  tip: "Travou? Escreva 'não sei o que escrever' até um pensamento novo aparecer.",
+  frequency: FREQ_ANSIEDADE,
   tool: "braindump",
   toolConfig: { minutes: 10 },
 };
@@ -105,14 +155,17 @@ const exame: Technique = {
   slug: "examinando-o-pensamento",
   number: 5,
   name: "Examinando o Pensamento",
-  when: "Quando um pensamento ansioso se apresenta como se fosse um fato inquestionável.",
+  whatWhy:
+    "Colocar um pensamento ansioso à prova, com evidências reais, mostra que ele não é um fato absoluto — só uma interpretação possível.",
+  preparation: "Escolha um lugar tranquilo para escrever com calma.",
   steps: [
-    "Escreva o pensamento exatamente como ele aparece.",
-    "Liste as evidências de que ele é verdade.",
-    "Liste as evidências contra.",
-    "Escreva uma versão mais equilibrada e realista.",
+    "Escreva o pensamento ansioso exatamente como ele aparece na sua cabeça.",
+    "Liste as evidências reais de que esse pensamento é verdadeiro.",
+    "Liste as evidências reais contra esse pensamento.",
+    "Escreva uma versão mais equilibrada, baseada no que você listou.",
   ],
-  why: "Examinar o pensamento recruta o córtex pré-frontal e enfraquece a associação automática entre pensamento e alarme.",
+  tip: "Se travar na lista 'contra', pergunte-se: 'o que eu diria a um amigo com esse mesmo pensamento?'",
+  frequency: FREQ_ANSIEDADE,
   tool: "journal",
   toolConfig: {
     prompts: [
@@ -128,15 +181,19 @@ const mergulho: Technique = {
   slug: "reflexo-do-mergulho",
   number: 6,
   name: "Reflexo do Mergulho (Água Fria)",
-  when: "No pico de uma crise de pânico, quando você precisa de algo que funcione em segundos.",
+  whatWhy:
+    "O contato com água bem fria no rosto ativa um reflexo natural do corpo que baixa os batimentos do coração em poucos segundos, interrompendo a escalada do pânico.",
+  preparation: "Vá até uma pia ou pegue uma bacia com água bem fria — gelo, se tiver.",
   steps: [
-    "Vá até uma pia ou pegue um recipiente com água bem fria.",
-    "Prenda a respiração por um instante e mergulhe o rosto — ou aplique a água nas laterais do rosto e nos olhos.",
-    "Permaneça de 15 a 30 segundos.",
-    "Respire normalmente e repita uma vez, se precisar.",
+    "Respire fundo uma vez e prenda o ar por um instante.",
+    "Mergulhe o rosto na água por 15 a 30 segundos — ou passe água gelada nas têmporas, pescoço e pulsos.",
+    "Levante devagar e volte a respirar normalmente.",
+    "Repita mais uma vez se a crise ainda estiver forte.",
   ],
-  why: "O contato com a água fria no rosto ativa o reflexo do mergulho, mediado pelo nervo vago: a frequência cardíaca cai em segundos, interrompendo a escalada da crise.",
-  caution: "Se você tem alguma condição cardíaca, consulte seu médico antes de usar esta técnica.",
+  tip: "Sem água por perto? Uma bolsa de gelo ou até uma lata gelada nas têmporas já ajuda.",
+  caution:
+    "Se você tem alguma condição cardíaca, converse com seu médico antes de usar esta técnica.",
+  frequency: FREQ_PANICO,
   tool: "dive",
 };
 
@@ -144,15 +201,17 @@ const surfar: Technique = {
   slug: "surfar-a-onda",
   number: 7,
   name: "Surfar a Onda",
-  when: "Quando a crise está acontecendo e existe a necessidade urgente de fazê-la parar.",
+  whatWhy:
+    "A crise de pânico sobe, atinge um pico e desce sozinha — geralmente em poucos minutos. Observar em vez de lutar contra ela é o que mais reduz o tempo da crise.",
+  preparation: "Sente-se ou encoste-se em algum lugar estável, se puder.",
   steps: [
-    "Diga para si mesmo: 'isto é uma onda, ela sobe e desce'.",
-    "Em vez de lutar, observe as sensações e onde elas estão no corpo.",
-    "Nomeie o que sente: 'coração acelerado', 'formigamento'.",
-    "Deixe a onda subir sem fugir — ela chega ao pico em torno de 10 minutos.",
-    "Observe a descida. Você atravessou.",
+    "Diga para si mesmo: 'isto é uma onda, ela sobe e desce sozinha'.",
+    "Observe as sensações no corpo sem tentar fazê-las parar.",
+    "Nomeie o que sente, por exemplo: 'coração acelerado', 'mãos formigando'.",
+    "Espere a onda passar — o pico costuma durar cerca de 10 minutos.",
   ],
-  why: "Lutar contra a crise adiciona medo ao medo e prolonga a descarga de adrenalina. Observar sem fugir é o mecanismo central da extinção do medo.",
+  tip: "Quanto mais você tenta fazer a crise parar, mais ela demora. Só observar já ajuda a atravessar mais rápido.",
+  frequency: FREQ_PANICO,
   tool: "surf",
   toolConfig: { minutes: 10 },
 };
@@ -161,19 +220,26 @@ const intero: Technique = {
   slug: "exposicao-interoceptiva",
   number: 8,
   name: "Exposição Interoceptiva",
-  when: "Fora da crise, em dias tranquilos, para treinar o cérebro a tolerar sensações corporais.",
+  whatWhy:
+    "Provocar de forma leve e segura uma sensação parecida com a da crise, fora do momento de pânico, ensina o cérebro que essa sensação não é perigosa.",
+  preparation: "Escolha um dia tranquilo, sem compromissos urgentes logo em seguida.",
   steps: [
-    "Escolha um dia tranquilo, sem compromissos urgentes.",
-    "Provoque, de forma leve e breve, uma sensação parecida com a da crise (girar na cadeira por 20s, subir escadas rápido, respirar mais rápido por 30s).",
-    "Pare e observe: a sensação está aqui e nada de catastrófico acontece.",
-    "Espere a sensação passar naturalmente.",
-    "Anote o nível de medo antes e depois.",
+    "Escolha uma sensação para provocar: girar na cadeira por 20 segundos, subir escadas rápido ou respirar mais rápido por 30 segundos.",
+    "Faça o movimento escolhido pelo tempo indicado.",
+    "Pare e observe: a sensação está aqui, e nada de grave está acontecendo.",
+    "Espere a sensação passar naturalmente e anote o nível de medo antes e depois.",
   ],
-  why: "Quem tem pânico aprende a temer as próprias sensações. Provocá-las de forma segura e ver que nada acontece reduz a interpretação de perigo — é o princípio da exposição.",
-  caution: "Interrompa se sentir dor. Em caso de condição cardíaca ou respiratória, fale com seu médico antes.",
+  tip: "Comece pela versão mais leve da sensação. Você pode aumentar aos poucos, em outro dia.",
+  caution:
+    "Pare se sentir dor. Se tiver condição cardíaca ou respiratória, converse com seu médico antes.",
+  frequency: FREQ_PANICO,
   tool: "journal",
   toolConfig: {
-    prompts: ["Qual sensação você treinou hoje?", "De 0 a 10, quanto de medo no começo?", "E no fim?"],
+    prompts: [
+      "Qual sensação você treinou hoje?",
+      "De 0 a 10, quanto de medo no começo?",
+      "E no fim?",
+    ],
   },
 };
 
@@ -181,14 +247,17 @@ const vago: Technique = {
   slug: "regulacao-nervo-vago",
   number: 9,
   name: "Regulação Diária pelo Nervo Vago",
-  when: "Todos os dias, como manutenção — especialmente à noite.",
+  whatWhy:
+    "Expirar mais devagar do que inspira, todo dia, treina o corpo a voltar à calma mais rápido depois de qualquer susto.",
+  preparation: "Faça de preferência à noite, sentado ou deitado.",
   steps: [
-    "Inspire suave pelo nariz por 4 segundos.",
-    "Expire por 8 segundos, com um som contínuo ('vvv' ou cantarolando).",
-    "Repita por 8 ciclos.",
-    "Ao terminar, observe o corpo por alguns segundos.",
+    "Inspire suave pelo nariz contando até 4.",
+    "Solte o ar pela boca contando até 8, com um som contínuo (tipo 'vvv' ou cantarolando).",
+    "Repita por 8 ciclos completos.",
+    "Ao terminar, fique alguns segundos só observando como o corpo está.",
   ],
-  why: "Expirações longas, som e vibração aumentam o tônus vagal. Melhor tônus vagal significa voltar ao estado de calma mais rápido depois de um susto.",
+  tip: "Se 8 tempos de expiração for difícil no início, comece com 6 e vá aumentando aos poucos.",
+  frequency: FREQ_PANICO,
   tool: "breathing",
   toolConfig: {
     pattern: [
@@ -199,21 +268,54 @@ const vago: Technique = {
   },
 };
 
+const mapa: Technique = {
+  slug: "mapeamento-de-crises",
+  number: 16,
+  name: "Mapeamento de Crises",
+  whatWhy:
+    "Registrar o que aconteceu antes, durante e depois de uma crise revela padrões — e entender o padrão devolve a sensação de controle.",
+  preparation: "Faça esse registro depois da crise, quando já estiver mais calmo.",
+  steps: [
+    "Anote onde você estava e o que estava acontecendo antes da crise começar.",
+    "Anote quais sinais o corpo deu primeiro.",
+    "Anote o que ajudou você a atravessar a crise.",
+    "Guarde esse registro — ele é o seu mapa pessoal para a próxima vez.",
+  ],
+  tip: "Não se cobre por detalhes perfeitos. Mesmo um registro simples já ajuda a enxergar o padrão.",
+  frequency: FREQ_PANICO,
+  tool: "journal",
+  toolConfig: {
+    prompts: [
+      "Onde você estava e o que aconteceu antes?",
+      "Quais sinais o corpo deu primeiro?",
+      "O que ajudou a atravessar?",
+    ],
+  },
+};
+
 const tribunal: Technique = {
   slug: "tribunal-dos-pensamentos",
   number: 10,
   name: "O Tribunal dos Pensamentos",
-  when: "Quando a autocrítica aparece como verdade absoluta ('eu não sirvo para nada').",
+  whatWhy:
+    "Julgar um pensamento autocrítico como se fosse um caso em tribunal — com provas dos dois lados — mostra que ele não é uma sentença definitiva.",
+  preparation: "Escolha um pensamento autocrítico recente para trabalhar.",
   steps: [
-    "Escreva a acusação: o pensamento, com as palavras dele.",
-    "Escreva as provas a favor.",
-    "Escreva as provas contra.",
-    "Escreva o veredito: a conclusão mais justa possível.",
+    "Escreva a acusação: o pensamento, exatamente com as palavras que ele usa.",
+    "Escreva as provas a favor desse pensamento.",
+    "Escreva as provas contra esse pensamento.",
+    "Escreva o veredito: a conclusão mais justa possível, baseada nas provas.",
   ],
-  why: "Avaliar em vez de aceitar reduz a ruminação e devolve ao córtex pré-frontal o papel de juiz.",
+  tip: "Se as provas 'contra' não vierem fácil, pense no que diria a um amigo que se acusasse disso.",
+  frequency: FREQ_DEPRESSAO,
   tool: "tribunal",
   toolConfig: {
-    prompts: ["A acusação (o pensamento)", "Provas a favor", "Provas contra", "Veredito equilibrado"],
+    prompts: [
+      "A acusação (o pensamento)",
+      "Provas a favor",
+      "Provas contra",
+      "Veredito equilibrado",
+    ],
   },
 };
 
@@ -221,17 +323,24 @@ const desfusao: Technique = {
   slug: "desfusao-cognitiva",
   number: 11,
   name: "Desfusão Cognitiva",
-  when: "Quando você se sente preso dentro de um pensamento, como se ele fosse a realidade absoluta.",
+  whatWhy:
+    "Trocar 'eu sou um fracasso' por 'estou percebendo o pensamento de que sou um fracasso' muda a relação com o pensamento, mesmo sem mudar o conteúdo dele.",
+  preparation: "Escolha um pensamento fixo e incômodo para trabalhar.",
   steps: [
-    "Escreva o pensamento como ele é.",
-    "Reescreva assim: 'Estou percebendo o pensamento de que...'.",
-    "Leia em voz alta, devagar.",
-    "Observe o que muda na intensidade.",
+    "Escreva o pensamento exatamente como ele aparece.",
+    "Reescreva-o começando com: 'Estou percebendo o pensamento de que...'.",
+    "Leia a nova versão em voz alta, devagar.",
+    "Observe o que mudou na intensidade do pensamento.",
   ],
-  why: "Desfusão muda a relação com o pensamento em vez do conteúdo dele. A mente passa a observar de fora, e a carga emocional cai.",
+  tip: "Repita esse exercício sempre que o mesmo pensamento voltar — o efeito cresce com a repetição.",
+  frequency: FREQ_DEPRESSAO,
   tool: "journal",
   toolConfig: {
-    prompts: ["Escreva o pensamento", "Estou percebendo o pensamento de que...", "O que mudou ao ler assim?"],
+    prompts: [
+      "Escreva o pensamento",
+      "Estou percebendo o pensamento de que...",
+      "O que mudou ao ler assim?",
+    ],
   },
 };
 
@@ -239,13 +348,17 @@ const tresMomentos: Technique = {
   slug: "registro-dos-3-momentos",
   number: 12,
   name: "Registro dos 3 Momentos",
-  when: "Todos os dias, de preferência à noite — especialmente nos dias em que 'nada de bom aconteceu'.",
+  whatWhy:
+    "A depressão filtra o que é bom para fora da atenção. Registrar momentos concretos todos os dias treina o cérebro a notá-los de novo.",
+  preparation: "Faça de preferência à noite, antes de dormir.",
   steps: [
-    "Escreva um momento neutro ou bom do dia.",
-    "Escreva algo que você fez, mesmo mínimo.",
+    "Escreva um momento neutro ou bom que aconteceu hoje.",
+    "Escreva algo que você fez, mesmo que pareça pequeno.",
     "Escreva algo pelo qual sente um mínimo de gratidão.",
+    "Releia o que escreveu antes de guardar.",
   ],
-  why: "A depressão filtra estímulos positivos para fora. Registrar momentos concretos reativa a atenção seletiva a eles.",
+  tip: "Nos dias difíceis, 'consegui sair da cama' já conta como uma ação válida.",
+  frequency: FREQ_DEPRESSAO,
   tool: "journal",
   toolConfig: {
     prompts: [
@@ -260,14 +373,17 @@ const passos: Technique = {
   slug: "passos-ridiculamente-pequenos",
   number: 13,
   name: "Passos Ridiculamente Pequenos",
-  when: "Quando a vontade não vem e qualquer tarefa parece imensa.",
+  whatWhy:
+    "Na depressão, a ação vem antes da vontade, não depois. Um passo tão pequeno que é quase impossível não fazer já libera a dopamina que falta.",
+  preparation: "Escolha uma tarefa que está parada há um tempo.",
   steps: [
-    "Escolha uma tarefa e reduza até ficar quase impossível não fazer ('sentar na borda da cama').",
-    "Faça só esse passo.",
-    "Pare. Se quiser continuar, ótimo. Se não, o passo já valeu.",
-    "Registre o que foi feito.",
+    "Reduza a tarefa a um passo tão pequeno que fica quase impossível não fazer (ex: 'sentar na borda da cama').",
+    "Faça só esse passo, nada além dele.",
+    "Pare. Se quiser continuar, ótimo — se não quiser, o passo já valeu.",
+    "Registre o que você fez, mesmo que tenha sido mínimo.",
   ],
-  why: "Cada pequena ação libera dopamina — o neurotransmissor prejudicado na depressão. Na depressão, a ação vem primeiro; a vontade vem depois.",
+  tip: "Se ainda parecer grande, reduza de novo. Não existe passo pequeno demais.",
+  frequency: FREQ_DEPRESSAO,
   tool: "steps",
   toolConfig: {
     prompts: ["Qual é o passo tão pequeno que é quase impossível não fazer?", "Feito? Como foi?"],
@@ -278,14 +394,18 @@ const ritmico: Technique = {
   slug: "movimento-ritmico",
   number: 14,
   name: "Movimento Rítmico",
-  when: "Em estado de torpor, anestesiado emocionalmente, sem sentir nada.",
+  whatWhy:
+    "Movimentos repetitivos e ritmados aumentam substâncias no cérebro ligadas a energia e humor, ajudando a sair do estado de torpor.",
+  preparation:
+    "Escolha um movimento simples: caminhar, pedalar, balançar o corpo ou dançar bem devagar.",
   steps: [
-    "Escolha um movimento repetitivo: caminhar, pedalar, balançar, dançar devagar.",
-    "Mantenha por 10 minutos, sem meta de desempenho.",
-    "Preste atenção ao ritmo, não ao esforço.",
-    "Ao terminar, observe se algo mudou — mesmo 1%.",
+    "Comece o movimento escolhido, sem se preocupar com desempenho.",
+    "Se quiser, coloque uma mão no peito e outra no braço, num toque suave, enquanto se move.",
+    "Continue por 10 minutos, prestando atenção no ritmo, não no esforço.",
+    "Ao terminar, observe se algo mudou no corpo — mesmo que seja muito pouco.",
   ],
-  why: "Movimento ritmado aumenta serotonina e norepinefrina e ajuda a sair do estado de anestesia emocional.",
+  tip: "Vale começar com só 2 minutos. O importante é repetir, não a duração.",
+  frequency: FREQ_DEPRESSAO,
   tool: "timer",
   toolConfig: { minutes: 10 },
 };
@@ -294,9 +414,17 @@ const coerente: Technique = {
   slug: "respiracao-coerente",
   number: 15,
   name: "Respiração Coerente",
-  when: "Antes de dormir ou como prática diária de regulação.",
-  steps: ["Inspire por 5 segundos.", "Expire por 5 segundos.", "Mantenha por 5 minutos (cerca de 12 ciclos)."],
-  why: "Cerca de 6 respirações por minuto sincronizam coração e respiração, melhorando a variabilidade da frequência cardíaca.",
+  whatWhy:
+    "Respirar em torno de 6 vezes por minuto sincroniza coração e respiração, o que melhora a capacidade do corpo de se acalmar sozinho.",
+  preparation: "Sente-se ou deite-se confortavelmente, de preferência antes de dormir.",
+  steps: [
+    "Inspire pelo nariz contando até 5.",
+    "Solte o ar contando até 5.",
+    "Repita esse ciclo por cerca de 5 minutos (cerca de 12 ciclos).",
+    "Ao terminar, respire normalmente e observe o corpo por alguns segundos.",
+  ],
+  tip: "Se perder a conta, não tem problema — só volte a contar no próximo ciclo.",
+  frequency: FREQ_DEPRESSAO,
   tool: "breathing",
   toolConfig: {
     pattern: [
@@ -307,35 +435,21 @@ const coerente: Technique = {
   },
 };
 
-const mapa: Technique = {
-  slug: "mapeamento-de-crises",
-  number: 16,
-  name: "Mapeamento de Crises",
-  when: "Depois de uma crise, com calma, para entender o padrão.",
-  steps: [
-    "Anote onde você estava e o que aconteceu antes.",
-    "Anote quais sinais o corpo deu primeiro.",
-    "Anote o que ajudou a atravessar.",
-    "Guarde: esse é o seu mapa pessoal.",
-  ],
-  why: "Identificar sinais precoces permite agir antes do pico e devolve senso de previsibilidade e controle.",
-  tool: "journal",
-  toolConfig: {
-    prompts: ["Onde você estava e o que aconteceu antes?", "Quais sinais o corpo deu primeiro?", "O que ajudou a atravessar?"],
-  },
-};
-
 const memoria: Technique = {
   slug: "relacao-com-a-memoria",
   number: 17,
   name: "Mudando a Relação com a Memória",
-  when: "Quando uma lembrança difícil continua doendo como se fosse hoje.",
+  whatWhy:
+    "Toda vez que uma memória é lembrada, ela fica maleável por um instante. Isso permite regravá-la com um pouco mais de cuidado, sem apagar o que aconteceu.",
+  preparation: "Escolha uma lembrança difícil, mas que você já consiga tocar sem se desorganizar.",
   steps: [
-    "Descreva a lembrança em três linhas, como se contasse a um amigo.",
-    "Escreva o que você sabe hoje e não sabia naquele momento.",
-    "Escreva uma frase de cuidado para aquela versão de você.",
+    "Descreva a lembrança em três linhas, como se contasse para um amigo.",
+    "Escreva o que você sabe hoje que não sabia naquele momento.",
+    "Escreva uma frase de cuidado para a versão de você daquela época.",
+    "Releia as três partes antes de encerrar.",
   ],
-  why: "Ao ser recordada, a memória fica momentaneamente maleável e é regravada junto com o contexto atual. Não é apagar o passado — é mudar a relação com ele.",
+  tip: "Se a lembrança for muito pesada, converse com um profissional antes de revisitá-la sozinho.",
+  frequency: FREQ_DEPRESSAO,
   tool: "journal",
   toolConfig: {
     prompts: [
@@ -350,14 +464,73 @@ const contrato: Technique = {
   slug: "contrato-de-compromisso",
   number: 18,
   name: "Contrato de Compromisso Pessoal",
-  when: "No começo do caminho — e nos dias em que bate a vontade de desistir.",
+  whatWhy:
+    "Escrever e assinar uma decisão faz o cérebro registrá-la como um evento real — não como só mais um pensamento passageiro.",
+  preparation: "Escolha um momento tranquilo, sem pressa.",
   steps: [
-    "Leia o contrato em voz alta, devagar.",
-    "Escreva seu nome e assine.",
-    "Releia nos dias difíceis.",
+    "Leia o contrato de compromisso em voz alta, devagar.",
+    "Escreva seu nome completo abaixo dele.",
+    "Assine, como se estivesse assinando algo oficial.",
+    "Guarde o contrato para reler nos dias mais difíceis.",
   ],
-  why: "Escrever e assinar faz o cérebro registrar a decisão como evento real e significativo, criando um ponto de ancoragem interno: 'eu decidi me cuidar'.",
+  tip: "Releia sempre que a vontade de desistir aparecer — é para isso que ele existe.",
+  frequency: FREQ_DEPRESSAO,
   tool: "contract",
+};
+
+const pmr: Technique = {
+  slug: "relaxamento-muscular-progressivo",
+  number: 19,
+  name: "Relaxamento Muscular Progressivo (Jacobson)",
+  whatWhy:
+    "Tensionar e soltar cada grupo muscular de propósito ensina o corpo a reconhecer e liberar a tensão que a irritação acumula, sem precisar de raciocínio.",
+  preparation: "Sente-se ou deite-se num lugar em que possa tensionar o corpo sem se machucar.",
+  steps: [
+    "Tensione um grupo muscular por 5 segundos (mãos, braços, ombros, rosto, barriga ou pernas).",
+    "Solte de uma vez e perceba o alívio por 10 segundos.",
+    "Passe para o próximo grupo muscular e repita.",
+    "Ao terminar todos os grupos, respire fundo três vezes.",
+  ],
+  tip: "Se algum grupo doer ao tensionar, pule para o próximo — nunca force além do confortável.",
+  frequency: FREQ_IRRITABILIDADE,
+  tool: "pmr",
+};
+
+const somatica: Technique = {
+  slug: "visao-panoramica-somatica",
+  number: 20,
+  name: "Visão Panorâmica Somática",
+  whatWhy:
+    "Ampliar o campo de visão avisa ao corpo que não há perigo por perto — o oposto da visão em túnel que a raiva provoca.",
+  preparation: "Fique parado onde estiver, sem precisar fechar os olhos.",
+  steps: [
+    "Sem mover a cabeça, amplie o olhar até notar as bordas do ambiente ao seu redor.",
+    "Nomeie mentalmente 3 pontos fixos que você vê sem mover a cabeça.",
+    "Perceba o peso do corpo apoiado — os pés no chão ou o corpo na cadeira.",
+    "Alongue a expiração por alguns ciclos, deixando-a mais longa que a inspiração.",
+  ],
+  tip: "Se a mente insistir em voltar ao gatilho, só volte a nomear os pontos fixos — sem se cobrar.",
+  frequency: FREQ_IRRITABILIDADE,
+  tool: "somatic-scan",
+};
+
+const diarioDesescalada: Technique = {
+  slug: "diario-de-desescalada",
+  number: 21,
+  name: "Diário de Desescalada",
+  whatWhy:
+    "Nomear o gatilho, a sensação física e o pensamento devolve a situação para a parte racional do cérebro, no lugar da reação automática de luta.",
+  preparation:
+    "Faça esse registro depois do pico, quando já conseguir pensar com um pouco mais de calma.",
+  steps: [
+    "Identifique o que disparou a irritação.",
+    "Anote as sensações físicas que vieram junto (mandíbula travada, mãos quentes, etc.).",
+    "Troque o pensamento hostil automático por uma leitura mais neutra da situação.",
+    "Escolha uma ação assertiva e, se precisar, um tempo de isolamento saudável antes de agir.",
+  ],
+  tip: "Se ainda estiver muito ativado, espere alguns minutos antes de preencher — o registro funciona melhor com a cabeça mais fria.",
+  frequency: FREQ_IRRITABILIDADE,
+  tool: "escalation-diary",
 };
 
 export const SESSIONS: Session[] = [
@@ -408,6 +581,26 @@ export const SESSIONS: Session[] = [
       },
     ],
     techniques: [tribunal, desfusao, tresMomentos, passos, ritmico, coerente, memoria, contrato],
+  },
+  {
+    slug: "irritabilidade",
+    title: "Sessão 4 — Irritabilidade",
+    subtitle: "Regulando o pavio curto antes que ele exploda",
+    science: [
+      {
+        heading: "Teoria Polivagal",
+        body: "O nervo vago monitora sinais de segurança ou ameaça no ambiente sem passar pelo pensamento consciente. Quando ele detecta perigo, o corpo entra em modo de luta: mandíbula trava, mãos esquentam, a visão fecha em túnel. Sinais de segurança — respiração longa, campo de visão amplo — desligam esse modo.",
+      },
+      {
+        heading: "TIPP (DBT)",
+        body: "Temperatura, Exercício Intenso, Respiração Ritmada e Relaxamento Muscular são as quatro ferramentas da Terapia Comportamental Dialética para mudar a química do corpo em minutos, não em horas — o choque de água fria e a descarga motora agem direto no sistema nervoso, sem precisar de raciocínio.",
+      },
+      {
+        heading: "Pensamento Hostil Automático (TCC)",
+        body: "A raiva costuma vir de uma interpretação automática ('ele fez de propósito', 'estão me desrespeitando') que raramente é checada. Trocar essa leitura por uma interpretação neutra não anula o sentimento — mas tira a lenha automática da fogueira.",
+      },
+    ],
+    techniques: [pmr, somatica, diarioDesescalada],
   },
 ];
 

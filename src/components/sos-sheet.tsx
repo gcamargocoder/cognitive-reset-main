@@ -1,24 +1,36 @@
-import { useState } from "react";
-import { HeartPulse, Wind } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Flame, HeartPulse, Wind } from "lucide-react";
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ToolRenderer } from "@/components/tools/tool-renderer";
+import { IrritabilitySosFlow } from "@/components/irritability-sos-flow";
 import { SOS } from "@/lib/library";
-
-type Mode = "panico" | "ansiedade";
+import type { SosMode } from "@/lib/sos-context";
 
 export function SosSheet({
   open,
   onOpenChange,
+  initialMode,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialMode?: SosMode | undefined;
 }) {
-  const [mode, setMode] = useState<Mode | null>(null);
+  const [mode, setMode] = useState<SosMode | null>(null);
   const [index, setIndex] = useState(0);
-  const list = mode ? SOS[mode] : [];
+  const list = mode === "panico" || mode === "ansiedade" ? SOS[mode] : [];
   const technique = list[index];
+
+  useEffect(() => {
+    if (open && initialMode) setMode(initialMode);
+  }, [open, initialMode]);
 
   const close = (next: boolean) => {
     onOpenChange(next);
@@ -48,7 +60,9 @@ export function SosSheet({
               <HeartPulse className="h-6 w-6 shrink-0" />
               <span>
                 <span className="block font-semibold">Estou em crise de pânico</span>
-                <span className="block text-xs opacity-90">Reflexo do mergulho e surfar a onda</span>
+                <span className="block text-xs opacity-90">
+                  Reflexo do mergulho e surfar a onda
+                </span>
               </span>
             </Button>
             <Button
@@ -65,10 +79,31 @@ export function SosSheet({
                 </span>
               </span>
             </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-auto w-full justify-start gap-3 border-sos/40 py-4 text-left"
+              onClick={() => setMode("irritabilidade")}
+            >
+              <Flame className="h-6 w-6 shrink-0 text-sos" />
+              <span>
+                <span className="block font-semibold">Estou com irritabilidade / pavio curto</span>
+                <span className="block text-xs text-muted-foreground">
+                  Choque de temperatura e descarga de energia
+                </span>
+              </span>
+            </Button>
             <p className="pt-2 text-xs text-muted-foreground">
               Em risco imediato, ligue 188 (CVV) ou procure emergência. Este app é apoio, não
               substitui atendimento profissional.
             </p>
+          </div>
+        ) : mode === "irritabilidade" ? (
+          <div className="space-y-4 pb-[calc(2rem+env(safe-area-inset-bottom))]">
+            <IrritabilitySosFlow onFinish={() => close(false)} />
+            <Button size="lg" variant="ghost" className="w-full" onClick={() => setMode(null)}>
+              Voltar
+            </Button>
           </div>
         ) : (
           <div className="space-y-4 pb-[calc(2rem+env(safe-area-inset-bottom))]">
@@ -77,7 +112,7 @@ export function SosSheet({
                 <Button
                   key={item.slug}
                   size="lg"
-                  className="h-11 w-full justify-center text-center"
+                  className="h-auto w-full whitespace-normal py-3 text-center leading-snug"
                   variant={i === index ? "default" : "outline"}
                   onClick={() => setIndex(i)}
                 >
@@ -98,7 +133,7 @@ export function SosSheet({
                 <ToolRenderer technique={technique} />
               </>
             ) : null}
-            <Button variant="ghost" className="h-11 w-full" onClick={() => setMode(null)}>
+            <Button size="lg" variant="ghost" className="w-full" onClick={() => setMode(null)}>
               Voltar
             </Button>
           </div>

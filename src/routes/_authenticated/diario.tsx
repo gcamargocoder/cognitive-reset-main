@@ -1,14 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import { IrritabilityThermometer } from "@/components/irritability-thermometer";
 import { supabase } from "@/integrations/supabase/client";
 import { JOURNAL_TEXT_MAX_LENGTH, firstIssueMessage, journalTextSchema } from "@/lib/validation";
+
+const IRRITABILITY_KINDS = [
+  "irritability_checkin",
+  "irritability_pause",
+  "irritability_sos",
+] as const;
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+const chartConfig = {
+  level: { label: "Nível de irritação", color: "var(--sos)" },
+} satisfies ChartConfig;
 
 export const Route = createFileRoute("/_authenticated/diario")({
   component: DiarioPage,
@@ -68,6 +87,70 @@ function DiarioPage() {
     },
   });
 
+  const irritability = useQuery({
+    queryKey: ["irritability-history"],
+    queryFn: async () => {
+      const since = new Date(Date.now() - THIRTY_DAYS_MS).toISOString();
+      const { data, error } = await supabase
+        .from("journal_entries")
+        .select("kind, content, created_at")
+        .in("kind", IRRITABILITY_KINDS)
+        .gte("created_at", since)
+        .order("created_at", { ascending: true });
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+
+  const irritabilityStats = useMemo(() => {
+    const rows = irritability.data ?? [];
+    const checkins = rows.filter((r) => r.kind === "irritability_checkin");
+    const pauses = rows.filter(
+      (r) => r.kind === "irritability_pause" || r.kind === "irritability_sos",
+    );
+
+    const levelOf = (row: (typeof rows)[number]) => (row.content as { level?: number })?.level ?? 0;
+    const feltBetterOf = (row: (typeof rows)[number]) =>
+      (row.content as { feltBetter?: boolean })?.feltBetter === true;
+
+    const chartData = checkins.map((row) => ({
+      date: new Date(row.created_at).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
+      level: levelOf(row),
+    }));
+
+    const peakCount = checkins.filter((row) => levelOf(row) >= 4).length;
+    const successRate =
+      pauses.length > 0
+        ? Math.round((pauses.filter(feltBetterOf).length / pauses.length) * 100)
+        : null;
+
+    const now = Date.now();
+    const avgInWindow = (fromMs: number, toMs: number) => {
+      const window = checkins.filter((row) => {
+        const age = now - new Date(row.created_at).getTime();
+        return age >= fromMs && age < toMs;
+      });
+      if (window.length === 0) return null;
+      return window.reduce((sum, row) => sum + levelOf(row), 0) / window.length;
+    };
+    const last7Avg = avgInWindow(0, 7 * 86_400_000);
+    const prev7Avg = avgInWindow(7 * 86_400_000, 14 * 86_400_000);
+
+    let trendMessage = "Registre seu nível por alguns dias para ver a evolução aqui.";
+    if (last7Avg !== null && prev7Avg !== null) {
+      if (last7Avg < prev7Avg - 0.3)
+        trendMessage = "Sua irritabilidade está diminuindo nos últimos dias.";
+      else if (last7Avg > prev7Avg + 0.3)
+        trendMessage = "Seus níveis subiram um pouco — vale reforçar as pausas táticas.";
+      else trendMessage = "Sua constante está estável nos últimos dias.";
+    }
+
+    return { chartData, peakCount, successRate, trendMessage };
+  }, [irritability.data]);
+
   const save = async () => {
     const validation = journalTextSchema.safeParse(text);
     if (!validation.success) {
@@ -101,7 +184,9 @@ function DiarioPage() {
 
   return (
     <AppShell title="Meu Diário" subtitle="Registre o que sentiu e veja sua evolução">
-      <div className="grid grid-cols-2 gap-3">
+      <IrritabilityThermometer />
+
+      <div className="mt-6 grid grid-cols-2 gap-3">
         {[
           { value: completed, label: "dias da trilha concluídos" },
           { value: entries.data?.length ?? 0, label: "registros no diário" },
@@ -122,6 +207,48 @@ function DiarioPage() {
           </motion.div>
         ))}
       </div>
+
+      {irritabilityStats.chartData.length > 0 ? (
+        <section className="mt-6 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-soft">
+          <h2 className="text-base font-semibold">Evolução da irritabilidade</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{irritabilityStats.trendMessage}</p>
+
+          <ChartContainer config={chartConfig} className="mt-4 aspect-auto h-40 w-full">
+            <LineChart data={irritabilityStats.chartData} margin={{ left: -20, right: 8 }}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis dataKey="date" tickLine={false} axisLine={false} fontSize={11} />
+              <YAxis
+                domain={[1, 5]}
+                tickCount={5}
+                tickLine={false}
+                axisLine={false}
+                fontSize={11}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Line
+                dataKey="level"
+                type="monotone"
+                stroke="var(--color-level)"
+                strokeWidth={2}
+                dot={{ r: 3 }}
+              />
+            </LineChart>
+          </ChartContainer>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-border/50 bg-background/60 p-3">
+              <p className="text-2xl font-semibold tabular-nums">{irritabilityStats.peakCount}</p>
+              <p className="text-xs text-muted-foreground">picos (nível 4-5) em 30 dias</p>
+            </div>
+            <div className="rounded-2xl border border-border/50 bg-background/60 p-3">
+              <p className="text-2xl font-semibold tabular-nums">
+                {irritabilityStats.successRate !== null ? `${irritabilityStats.successRate}%` : "—"}
+              </p>
+              <p className="text-xs text-muted-foreground">sucesso nas pausas guiadas</p>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="mt-6 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-soft">
         <h2 className="text-base font-semibold">Como você está agora?</h2>

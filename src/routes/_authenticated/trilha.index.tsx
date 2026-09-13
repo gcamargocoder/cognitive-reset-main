@@ -144,8 +144,8 @@ function TrilhaPage() {
                     Em andamento
                   </span>
                 ) : null}
-                <p className="truncate text-sm font-semibold text-foreground">{day.title}</p>
-                <p className="truncate text-xs text-muted-foreground">{day.technique}</p>
+                <p className="text-sm font-semibold leading-snug text-foreground">{day.title}</p>
+                <p className="text-xs text-muted-foreground">{day.technique}</p>
               </div>
 
               {available ? (

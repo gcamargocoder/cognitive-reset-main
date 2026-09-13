@@ -4,7 +4,9 @@ import { type ReactNode, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 import { SosSheet } from "./sos-sheet";
+import { DonateDialog } from "./donate-dialog";
 import { cn } from "@/lib/utils";
+import { SosContext, type SosMode } from "@/lib/sos-context";
 
 const items = [
   { to: "/trilha", label: "Trilha", icon: CalendarCheck },
@@ -25,7 +27,13 @@ export function AppShell({
   action?: ReactNode;
 }) {
   const [sosOpen, setSosOpen] = useState(false);
+  const [sosMode, setSosMode] = useState<SosMode | undefined>(undefined);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  const openSos = (mode?: SosMode) => {
+    setSosMode(mode);
+    setSosOpen(true);
+  };
 
   const renderItem = ({ to, label, icon: Icon }: (typeof items)[number]) => {
     const active = pathname.startsWith(to);
@@ -34,7 +42,7 @@ export function AppShell({
         <Link
           to={to}
           className={cn(
-            "relative flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-[11px] font-medium transition-colors duration-200 sm:text-xs",
+            "relative flex flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 text-[9px] font-medium transition-colors duration-200 sm:text-[10px]",
             active ? "text-primary-foreground" : "text-muted-foreground",
           )}
         >
@@ -49,7 +57,7 @@ export function AppShell({
             ) : null}
           </AnimatePresence>
           <span className="relative">
-            <Icon className="h-5 w-5 sm:h-[22px] sm:w-[22px]" strokeWidth={active ? 2.2 : 1.8} />
+            <Icon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={active ? 2.2 : 1.8} />
           </span>
           <span className="relative">{label}</span>
         </Link>
@@ -58,56 +66,63 @@ export function AppShell({
   };
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-calm pb-[calc(7rem+env(safe-area-inset-bottom))] no-scrollbar">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/85 px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-lg">
-        <div className="mx-auto grid max-w-2xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-          <motion.div
-            key={title}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="min-w-0"
-          >
-            <h1 className="truncate text-[1.4rem] font-semibold leading-tight tracking-tight sm:text-2xl">
-              {title}
-            </h1>
-            {subtitle ? <p className="truncate text-sm text-muted-foreground">{subtitle}</p> : null}
-          </motion.div>
-          {action}
-        </div>
-      </header>
-
-      <motion.main
-        key={pathname}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
-        className="relative mx-auto max-w-2xl px-5 py-6"
-      >
-        {children}
-      </motion.main>
-
-      <nav className="fixed inset-x-0 bottom-0 z-20 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        <ul className="relative mx-auto grid max-w-md grid-cols-5 items-end gap-1 rounded-2xl border border-border bg-background/90 p-1.5 shadow-lift backdrop-blur-lg sm:max-w-lg sm:gap-2 sm:p-2 md:max-w-xl">
-          {items.slice(0, 2).map(renderItem)}
-          <li className="relative flex items-end justify-center">
-            <motion.button
-              type="button"
-              onClick={() => setSosOpen(true)}
-              aria-label="Abrir SOS emocional"
-              whileTap={{ scale: 0.94 }}
-              whileHover={{ scale: 1.03 }}
-              className="relative -top-5 flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-2xl bg-sos text-sos-foreground shadow-lift ring-4 ring-background sm:h-16 sm:w-16"
+    <SosContext.Provider value={{ open: openSos }}>
+      <div className="relative min-h-screen overflow-x-hidden bg-calm pb-[calc(3.75rem+env(safe-area-inset-bottom))] no-scrollbar">
+        <header className="sticky top-0 z-20 border-b border-border bg-background/85 px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-lg">
+          <div className="mx-auto grid max-w-2xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+            <motion.div
+              key={title}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="min-w-0"
             >
-              <LifeBuoy className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.2} />
-              <span className="text-[10px] font-bold leading-none tracking-wide sm:text-xs">SOS</span>
-            </motion.button>
-          </li>
-          {items.slice(2).map(renderItem)}
-        </ul>
-      </nav>
+              <h1 className="truncate text-[1.4rem] font-semibold leading-tight tracking-tight sm:text-2xl">
+                {title}
+              </h1>
+              {subtitle ? (
+                <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
+              ) : null}
+            </motion.div>
+            {action}
+          </div>
+        </header>
 
-      <SosSheet open={sosOpen} onOpenChange={setSosOpen} />
-    </div>
+        <div className="fixed right-4 top-[calc(1rem+env(safe-area-inset-top))] z-30">
+          <DonateDialog />
+        </div>
+
+        <motion.main
+          key={pathname}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+          className="relative mx-auto max-w-2xl px-5 py-6"
+        >
+          {children}
+        </motion.main>
+
+        <nav className="fixed inset-x-0 bottom-0 z-20 w-full border-t border-border bg-background/95 backdrop-blur-lg">
+          <ul className="mx-auto grid w-full max-w-2xl grid-cols-5 items-stretch gap-1 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 sm:gap-2">
+            {items.slice(0, 2).map(renderItem)}
+            <li className="relative">
+              <motion.button
+                type="button"
+                onClick={() => openSos()}
+                aria-label="Abrir SOS emocional"
+                whileTap={{ scale: 0.94 }}
+                className="sos-pulse relative flex w-full flex-col items-center gap-0.5 rounded-xl bg-sos px-2 py-1.5 text-[9px] font-bold tracking-wide text-sos-foreground sm:text-[10px]"
+              >
+                <LifeBuoy className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={2.2} />
+                <span>SOS</span>
+              </motion.button>
+            </li>
+            {items.slice(2).map(renderItem)}
+          </ul>
+        </nav>
+
+        <SosSheet open={sosOpen} onOpenChange={setSosOpen} initialMode={sosMode} />
+      </div>
+    </SosContext.Provider>
   );
 }

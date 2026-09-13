@@ -93,9 +93,9 @@ function DayPage() {
         slug: `dia-${day}`,
         number: day,
         name: content.data.technique,
-        when: "",
+        whatWhy: content.data.science,
+        preparation: "",
         steps: [],
-        why: content.data.science,
         tool: content.data.tool as Technique["tool"],
         toolConfig: (content.data.tool_config ?? {}) as Record<string, unknown>,
       }

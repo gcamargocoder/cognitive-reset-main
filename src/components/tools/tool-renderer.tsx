@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "motion/react";
-import { Check, Pause, Play, RotateCcw, Save } from "lucide-react";
+import { Check, Pause, Play, RotateCcw, Save, ThumbsDown, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -12,11 +11,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { JOURNAL_TEXT_MAX_LENGTH } from "@/lib/validation";
+import { ToolErrorBoundary } from "@/components/tools/tool-error-boundary";
 import type { Technique } from "@/lib/library";
 
 type Phase = { label: string; secs: number };
 
-function useJournalSave(kind: string, title: string, day?: number | undefined) {
+export function useJournalSave(kind: string, title: string, day?: number | undefined) {
   const [saving, setSaving] = useState(false);
   const save = async (content: Record<string, unknown>) => {
     setSaving(true);
@@ -71,30 +71,21 @@ function BreathingTool({ pattern, cycles }: { pattern: Phase[]; cycles: number }
 
   return (
     <Card className="border-primary/20">
-      <CardContent className="flex flex-col items-center gap-5 py-8">
-        <motion.div
-          animate={{ scale: running ? [0.85, 1.08, 0.85] : 1 }}
-          transition={{
-            duration: current.secs * 2,
-            repeat: running ? Infinity : 0,
-            ease: "easeInOut",
-          }}
-          className="flex h-40 w-40 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground shadow-lift"
-        >
-          <span className="text-4xl font-semibold">{left}</span>
-        </motion.div>
-        <div className="text-center">
-          <p className="text-lg font-medium">{current.label}</p>
-          <p className="text-sm text-muted-foreground">
-            Ciclo {cycle} de {cycles}
-          </p>
-        </div>
+      <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+        <p className="font-display text-3xl font-black uppercase tracking-wide text-primary sm:text-4xl">
+          {current.label}
+        </p>
+        <span className="font-display text-8xl font-black leading-none sm:text-9xl">{left}</span>
+        <p className="text-sm text-muted-foreground">
+          Ciclo {cycle} de {cycles}
+        </p>
         <div className="flex gap-2">
-          <Button onClick={() => setRunning((r) => !r)} className="tap-scale">
+          <Button size="lg" onClick={() => setRunning((r) => !r)} className="tap-scale">
             {running ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
             {running ? "Pausar" : "Começar"}
           </Button>
           <Button
+            size="lg"
             variant="secondary"
             onClick={() => {
               setRunning(false);
@@ -152,6 +143,7 @@ function GroundingTool({ day }: { day?: number | undefined }) {
           </div>
         ))}
         <Button
+          size="lg"
           className="w-full tap-scale"
           disabled={saving || filled === 0}
           onClick={() =>
@@ -188,7 +180,7 @@ function BrainDumpTool({ minutes, day }: { minutes: number; day?: number | undef
           <span className="font-display text-3xl">
             {mm}:{ss}
           </span>
-          <Button variant="secondary" onClick={() => setRunning((r) => !r)}>
+          <Button size="lg" variant="secondary" onClick={() => setRunning((r) => !r)}>
             {running ? "Pausar" : "Iniciar tempo"}
           </Button>
         </div>
@@ -200,6 +192,7 @@ function BrainDumpTool({ minutes, day }: { minutes: number; day?: number | undef
           placeholder="Escreva tudo que vier à cabeça, sem organizar, sem corrigir, sem julgar..."
         />
         <Button
+          size="lg"
           className="w-full tap-scale"
           disabled={saving || !text.trim()}
           onClick={() => save({ text })}
@@ -243,6 +236,7 @@ function PromptsTool({
           </div>
         ))}
         <Button
+          size="lg"
           className="w-full tap-scale"
           disabled={saving || answers.every((a) => !a.trim())}
           onClick={() => save(Object.fromEntries(prompts.map((p, i) => [p, answers[i]])))}
@@ -286,10 +280,11 @@ function TimerTool({ minutes }: { minutes: number }) {
         </span>
         <Progress className="w-full" value={100 - (left / (minutes * 60)) * 100} />
         <div className="flex gap-2">
-          <Button onClick={() => setRunning((r) => !r)} className="tap-scale">
+          <Button size="lg" onClick={() => setRunning((r) => !r)} className="tap-scale">
             {running ? "Pausar" : "Começar"}
           </Button>
           <Button
+            size="lg"
             variant="secondary"
             onClick={() => {
               setRunning(false);
@@ -306,10 +301,10 @@ function TimerTool({ minutes }: { minutes: number }) {
 }
 
 const DIVE_STEPS = [
-  "Encha a pia ou uma bacia com água bem fria (com gelo, se possível).",
-  "Respire fundo e prenda o ar.",
-  "Mergulhe o rosto — testa, olhos e maçãs do rosto — por 15 a 30 segundos.",
-  "Volte devagar e repita se precisar.",
+  "Encha uma bacia ou a pia com água bem fria — se tiver gelo, ainda melhor.",
+  "Respire fundo uma vez e prenda o ar por um instante.",
+  "Mergulhe o rosto na água por 15 a 30 segundos — ou passe água gelada nas têmporas, no pescoço e nos pulsos.",
+  "Levante devagar, respire normalmente e repita mais uma vez se ainda precisar.",
 ];
 
 function DiveTool() {
@@ -346,6 +341,7 @@ function DiveTool() {
         </ol>
         <div className="flex items-center justify-between gap-3">
           <Button
+            size="lg"
             variant="secondary"
             onClick={() => setStep((s) => Math.min(DIVE_STEPS.length - 1, s + 1))}
           >
@@ -354,6 +350,7 @@ function DiveTool() {
           <div className="flex items-center gap-2">
             <span className="font-display text-2xl">{hold}s</span>
             <Button
+              size="lg"
               onClick={() => {
                 setHold(30);
                 setRunning(true);
@@ -379,16 +376,9 @@ function SurfTool() {
   return (
     <Card>
       <CardContent className="space-y-5 py-6">
-        <div className="relative h-28 overflow-hidden rounded-2xl bg-gradient-primary">
-          <motion.div
-            animate={{ x: ["-10%", "10%", "-10%"] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-x-0 bottom-0 h-16 rounded-t-[100%] bg-background/30"
-          />
-          <p className="absolute inset-0 flex items-center justify-center px-4 text-center text-sm font-medium text-primary-foreground">
-            A onda sobe, atinge o pico e desce. Você não precisa fazer nada além de respirar.
-          </p>
-        </div>
+        <p className="rounded-2xl border border-border/60 bg-card/60 p-4 text-center text-sm text-muted-foreground">
+          A crise sobe, atinge o pico e desce. Você não precisa fazer nada além de respirar.
+        </p>
         <div className="space-y-2">
           <Label>Intensidade agora: {level}/10</Label>
           <input
@@ -408,6 +398,7 @@ function SurfTool() {
           onChange={(e) => setNote(e.target.value)}
         />
         <Button
+          size="lg"
           className="w-full tap-scale"
           disabled={saving}
           onClick={() => save({ level, note })}
@@ -450,6 +441,7 @@ function ContractTool() {
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome" />
         </div>
         <Button
+          size="lg"
           className="w-full tap-scale"
           disabled={saving || !name.trim() || commitments.some((c) => !c)}
           onClick={() => save({ name, commitments: labels })}
@@ -457,6 +449,375 @@ function ContractTool() {
           <Check className="mr-2 h-4 w-4" />
           Assinar compromisso
         </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+const MUSCLE_GROUPS = [
+  "Mãos e antebraços",
+  "Braços e ombros",
+  "Rosto e mandíbula",
+  "Barriga",
+  "Pernas e pés",
+];
+
+function PmrTool() {
+  const [group, setGroup] = useState(0);
+  const [tensing, setTensing] = useState(true);
+  const [left, setLeft] = useState(5);
+  const [running, setRunning] = useState(false);
+  const [done, setDone] = useState(false);
+  const [feltBetter, setFeltBetter] = useState<boolean | null>(null);
+  const { save, saving } = useJournalSave("irritability_pause", "Relaxamento Muscular Progressivo");
+
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      setLeft((prev) => {
+        if (prev > 1) return prev - 1;
+        if (tensing) {
+          setTensing(false);
+          return 10;
+        }
+        if (group >= MUSCLE_GROUPS.length - 1) {
+          setRunning(false);
+          setDone(true);
+          return 0;
+        }
+        setGroup((g) => g + 1);
+        setTensing(true);
+        return 5;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [running, tensing, group]);
+
+  if (done) {
+    return (
+      <Card>
+        <CardContent className="space-y-4 py-8 text-center">
+          <p className="text-base font-medium">Como está o corpo agora?</p>
+          <div className="flex justify-center gap-3">
+            <Button
+              size="lg"
+              variant={feltBetter === true ? "default" : "outline"}
+              onClick={() => setFeltBetter(true)}
+            >
+              <ThumbsUp className="mr-2 h-4 w-4" /> Mais leve
+            </Button>
+            <Button
+              size="lg"
+              variant={feltBetter === false ? "default" : "outline"}
+              onClick={() => setFeltBetter(false)}
+            >
+              <ThumbsDown className="mr-2 h-4 w-4" /> Ainda tenso
+            </Button>
+          </div>
+          <Button
+            size="lg"
+            className="w-full tap-scale"
+            disabled={saving || feltBetter === null}
+            onClick={() => save({ technique: "pmr", feltBetter })}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            Concluir
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-primary/20">
+      <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+        <p className="font-display text-2xl font-black uppercase tracking-wide text-primary sm:text-3xl">
+          {tensing ? "Tensione" : "Solte e relaxe"}
+        </p>
+        <p className="text-base font-semibold">{MUSCLE_GROUPS[group]}</p>
+        <span className="font-display text-8xl font-black leading-none sm:text-9xl">{left}</span>
+        <p className="text-sm text-muted-foreground">
+          Grupo {group + 1} de {MUSCLE_GROUPS.length}
+        </p>
+        <Button size="lg" onClick={() => setRunning((r) => !r)} className="tap-scale">
+          {running ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+          {running ? "Pausar" : "Começar"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+const SOMATIC_STEPS = [
+  "Sem mover a cabeça, amplie o campo de visão até notar as bordas do ambiente ao redor.",
+  "Nomeie, mentalmente, 3 pontos fixos que você consegue ver sem mover a cabeça.",
+  "Perceba o peso do corpo apoiado — os pés no chão ou o corpo na cadeira.",
+  "Alongue a expiração por alguns ciclos, mais longa do que a inspiração.",
+];
+
+function SomaticScanTool() {
+  const totalSecs = 180;
+  const [left, setLeft] = useState(totalSecs);
+  const [running, setRunning] = useState(false);
+  const [feltBetter, setFeltBetter] = useState<boolean | null>(null);
+  const { save, saving } = useJournalSave("irritability_pause", "Visão Panorâmica Somática");
+  const stepIndex = Math.min(
+    SOMATIC_STEPS.length - 1,
+    Math.floor(((totalSecs - left) / totalSecs) * SOMATIC_STEPS.length),
+  );
+
+  useEffect(() => {
+    if (!running || left <= 0) return;
+    const id = setInterval(() => setLeft((l) => Math.max(0, l - 1)), 1000);
+    return () => clearInterval(id);
+  }, [running, left]);
+
+  const done = left === 0;
+
+  return (
+    <Card>
+      <CardContent className="space-y-5 py-6">
+        <div className="flex items-center justify-between">
+          <span className="font-display text-3xl">
+            {String(Math.floor(left / 60)).padStart(2, "0")}:{String(left % 60).padStart(2, "0")}
+          </span>
+          <Button
+            size="lg"
+            variant="secondary"
+            onClick={() => setRunning((r) => !r)}
+            disabled={done}
+          >
+            {running ? "Pausar" : "Começar"}
+          </Button>
+        </div>
+        <Progress value={100 - (left / totalSecs) * 100} />
+        <p className="rounded-2xl border border-primary/30 bg-primary-soft/40 p-4 text-sm leading-relaxed">
+          {SOMATIC_STEPS[stepIndex]}
+        </p>
+        {done ? (
+          <>
+            <p className="text-sm font-medium">O campo de visão se abriu um pouco?</p>
+            <div className="flex justify-center gap-3">
+              <Button
+                size="lg"
+                variant={feltBetter === true ? "default" : "outline"}
+                onClick={() => setFeltBetter(true)}
+              >
+                <ThumbsUp className="mr-2 h-4 w-4" /> Sim
+              </Button>
+              <Button
+                size="lg"
+                variant={feltBetter === false ? "default" : "outline"}
+                onClick={() => setFeltBetter(false)}
+              >
+                <ThumbsDown className="mr-2 h-4 w-4" /> Ainda não
+              </Button>
+            </div>
+            <Button
+              size="lg"
+              className="w-full tap-scale"
+              disabled={saving || feltBetter === null}
+              onClick={() => save({ technique: "somatic-scan", feltBetter })}
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Concluir
+            </Button>
+          </>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+const TRIGGER_TAGS = ["Trabalho", "Trânsito", "Família", "Cansaço", "Redes sociais"];
+const SENSATION_TAGS = [
+  "Mandíbula travada",
+  "Mãos quentes",
+  "Respiração curta",
+  "Coração acelerado",
+  "Punhos fechados",
+];
+const ACTION_OPTIONS = [
+  "Falar usando 'eu sinto...' em vez de acusar",
+  "Pedir uma pausa antes de continuar a conversa",
+  "Escrever a resposta e reler antes de enviar",
+  "Pedir ajuda a alguém de confiança",
+];
+const ISOLATION_OPTIONS = ["Sem isolamento", "10 minutos", "20 minutos", "30 minutos"];
+
+function toggleInArray<T>(list: T[], value: T): T[] {
+  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+}
+
+function EscalationDiaryTool() {
+  const [step, setStep] = useState(0);
+  const [trigger, setTrigger] = useState<string[]>([]);
+  const [triggerOther, setTriggerOther] = useState("");
+  const [sensations, setSensations] = useState<string[]>([]);
+  const [automaticThought, setAutomaticThought] = useState("");
+  const [neutralReframe, setNeutralReframe] = useState("");
+  const [action, setAction] = useState<string | null>(null);
+  const [isolation, setIsolation] = useState<string | null>(null);
+  const { save, saving } = useJournalSave("irritability_diary", "Diário de Desescalada");
+
+  const canAdvance = [
+    trigger.length > 0 || triggerOther.trim().length > 0,
+    sensations.length > 0,
+    automaticThought.trim().length > 0 && neutralReframe.trim().length > 0,
+    action !== null,
+  ];
+
+  const submit = () =>
+    save({
+      trigger: [...trigger, ...(triggerOther.trim() ? [triggerOther.trim()] : [])],
+      sensations,
+      automaticThought,
+      neutralReframe,
+      action,
+      isolationMinutes: isolation,
+    });
+
+  return (
+    <Card>
+      <CardContent className="space-y-5 py-6">
+        <Progress value={((step + 1) / 4) * 100} />
+
+        {step === 0 ? (
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">O que disparou a irritação?</Label>
+            <div className="flex flex-wrap gap-2">
+              {TRIGGER_TAGS.map((tag) => (
+                <Button
+                  key={tag}
+                  type="button"
+                  size="sm"
+                  variant={trigger.includes(tag) ? "default" : "outline"}
+                  onClick={() => setTrigger((prev) => toggleInArray(prev, tag))}
+                >
+                  {tag}
+                </Button>
+              ))}
+            </div>
+            <Input
+              placeholder="Outro motivo (opcional)"
+              value={triggerOther}
+              onChange={(e) => setTriggerOther(e.target.value)}
+            />
+          </div>
+        ) : null}
+
+        {step === 1 ? (
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">O que o corpo sentiu?</Label>
+            {SENSATION_TAGS.map((tag) => (
+              <label key={tag} className="flex items-center gap-3 text-sm">
+                <Checkbox
+                  checked={sensations.includes(tag)}
+                  onCheckedChange={() => setSensations((prev) => toggleInArray(prev, tag))}
+                />
+                <span>{tag}</span>
+              </label>
+            ))}
+          </div>
+        ) : null}
+
+        {step === 2 ? (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">
+                Qual foi o pensamento automático (hostil)?
+              </Label>
+              <Textarea
+                rows={3}
+                maxLength={JOURNAL_TEXT_MAX_LENGTH}
+                value={automaticThought}
+                placeholder="Ex.: 'Ele fez isso de propósito para me atrapalhar.'"
+                onChange={(e) => setAutomaticThought(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">
+                Qual seria uma interpretação mais neutra?
+              </Label>
+              <Textarea
+                rows={3}
+                maxLength={JOURNAL_TEXT_MAX_LENGTH}
+                value={neutralReframe}
+                placeholder="Ex.: 'Talvez ele não tenha percebido o impacto disso agora.'"
+                onChange={(e) => setNeutralReframe(e.target.value)}
+              />
+            </div>
+          </div>
+        ) : null}
+
+        {step === 3 ? (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Qual ação assertiva você escolhe?</Label>
+              <div className="grid gap-2">
+                {ACTION_OPTIONS.map((opt) => (
+                  <Button
+                    key={opt}
+                    type="button"
+                    className="h-auto w-full justify-start whitespace-normal text-left"
+                    variant={action === opt ? "default" : "outline"}
+                    onClick={() => setAction(opt)}
+                  >
+                    {opt}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Tempo de isolamento saudável</Label>
+              <div className="flex flex-wrap gap-2">
+                {ISOLATION_OPTIONS.map((opt) => (
+                  <Button
+                    key={opt}
+                    type="button"
+                    size="sm"
+                    variant={isolation === opt ? "default" : "outline"}
+                    onClick={() => setIsolation(opt)}
+                  >
+                    {opt}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="flex items-center justify-between gap-3">
+          <Button
+            type="button"
+            size="lg"
+            variant="ghost"
+            disabled={step === 0}
+            onClick={() => setStep((s) => Math.max(0, s - 1))}
+          >
+            Voltar
+          </Button>
+          {step < 3 ? (
+            <Button
+              type="button"
+              size="lg"
+              disabled={!canAdvance[step]}
+              onClick={() => setStep((s) => s + 1)}
+            >
+              Próximo
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              disabled={saving || !canAdvance[3]}
+              onClick={submit}
+              className="tap-scale"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Salvar no diário
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -477,6 +838,19 @@ export function ToolRenderer({
   };
   const prompts = useMemo(() => config.prompts ?? [], [config.prompts]);
 
+  return (
+    <ToolErrorBoundary key={technique.slug}>
+      {renderTool(technique, config, prompts, day)}
+    </ToolErrorBoundary>
+  );
+}
+
+function renderTool(
+  technique: Technique,
+  config: { pattern?: Phase[]; cycles?: number; minutes?: number },
+  prompts: string[],
+  day: number | undefined,
+) {
   switch (technique.tool) {
     case "breathing":
       return (
@@ -497,6 +871,12 @@ export function ToolRenderer({
       return <SurfTool />;
     case "contract":
       return <ContractTool />;
+    case "pmr":
+      return <PmrTool />;
+    case "somatic-scan":
+      return <SomaticScanTool />;
+    case "escalation-diary":
+      return <EscalationDiaryTool />;
     case "journal":
     case "tribunal":
     case "steps":

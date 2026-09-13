@@ -193,6 +193,37 @@
   }
 }
 
+@keyframes sos-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--sos) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--sos) 0%, transparent);
+  }
+}
+
+@keyframes heart-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes heart-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
 @keyframes sheen {
   0% {
     transform: translateX(-120%);
@@ -221,6 +252,18 @@
 
 @utility shadow-glow {
   box-shadow: var(--shadow-glow);
+}
+
+@utility sos-pulse {
+  animation: sos-pulse 2.4s ease-in-out infinite;
+}
+
+@utility heart-beat {
+  animation: heart-beat 32s ease-in-out infinite;
+}
+
+@utility heart-ring {
+  animation: heart-ring 32s ease-out infinite;
 }
 
 @utility tap-scale {
@@ -254,6 +297,9 @@
   }
 
   html {
+    /* Aumento global de ~18% no tamanho de todas as fontes (rem-based),
+       para melhorar acessibilidade e leitura. */
+    font-size: 118%;
     scrollbar-width: none;
     -ms-overflow-style: none;
     scroll-behavior: smooth;
