@@ -4,19 +4,8 @@ import { type ReactNode, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 import { SosSheet } from "./sos-sheet";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { SosContext, type SosMode } from "@/lib/sos-context";
-import { useExitConfirm } from "@/hooks/use-exit-confirm";
 
 const items = [
   { to: "/trilha", label: "Trilha", icon: CalendarCheck },
@@ -30,19 +19,15 @@ export function AppShell({
   subtitle,
   children,
   action,
-  confirmExitOnBack = false,
 }: {
   title: string;
   subtitle?: string;
   children: ReactNode;
   action?: ReactNode;
-  /** Mostra confirmação antes de sair do app ao voltar (use só na tela inicial). */
-  confirmExitOnBack?: boolean;
 }) {
   const [sosOpen, setSosOpen] = useState(false);
   const [sosMode, setSosMode] = useState<SosMode | undefined>(undefined);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { open: exitOpen, confirmExit, cancelExit } = useExitConfirm(confirmExitOnBack);
 
   const openSos = (mode?: SosMode) => {
     setSosMode(mode);
@@ -132,21 +117,6 @@ export function AppShell({
         </nav>
 
         <SosSheet open={sosOpen} onOpenChange={setSosOpen} initialMode={sosMode} />
-
-        <AlertDialog open={exitOpen} onOpenChange={(next) => !next && cancelExit()}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Sair do aplicativo?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Deseja realmente sair do Método LIBERTAÇÃO?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={cancelExit}>Não</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmExit}>Sim, sair</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </SosContext.Provider>
   );

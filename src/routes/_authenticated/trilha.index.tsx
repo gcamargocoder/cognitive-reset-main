@@ -122,7 +122,7 @@ function TrilhaPage() {
   };
 
   return (
-    <AppShell title="Trilha de 30 dias" subtitle={`Dia ${currentDay} de 30`} confirmExitOnBack>
+    <AppShell title="Trilha de 30 dias" subtitle={`Dia ${currentDay} de 30`}>
       {/* Barra de progresso geral — minimalista e motivadora */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}

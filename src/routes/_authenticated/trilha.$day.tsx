@@ -82,7 +82,13 @@ function DayPage() {
   const toggle = (index: number, value: boolean) => {
     const next = checks.map((item, i) => (i === index ? value : item));
     setChecks(next);
-    void saveState({ data: { day, state: next } });
+    saveState({ data: { day, state: next } }).catch((error: unknown) => {
+      toast.error(
+        error instanceof Error
+          ? `Não foi possível salvar sua marcação: ${error.message}`
+          : "Não foi possível salvar sua marcação agora.",
+      );
+    });
   };
 
   const complete = async () => {

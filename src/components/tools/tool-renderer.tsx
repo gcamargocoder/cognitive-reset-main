@@ -79,7 +79,7 @@ function BreathingTool({ pattern, cycles }: { pattern: Phase[]; cycles: number }
         <p className="text-sm text-muted-foreground">
           Ciclo {cycle} de {cycles}
         </p>
-        <div className="flex gap-2">
+        <div className="grid w-full grid-cols-2 gap-2">
           <Button size="lg" onClick={() => setRunning((r) => !r)} className="tap-scale">
             {running ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
             {running ? "Pausar" : "Começar"}
@@ -279,7 +279,7 @@ function TimerTool({ minutes }: { minutes: number }) {
           {String(Math.floor(left / 60)).padStart(2, "0")}:{String(left % 60).padStart(2, "0")}
         </span>
         <Progress className="w-full" value={100 - (left / (minutes * 60)) * 100} />
-        <div className="flex gap-2">
+        <div className="grid w-full grid-cols-2 gap-2">
           <Button size="lg" onClick={() => setRunning((r) => !r)} className="tap-scale">
             {running ? "Pausar" : "Começar"}
           </Button>
@@ -339,15 +339,16 @@ function DiveTool() {
             </li>
           ))}
         </ol>
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Button
             size="lg"
             variant="secondary"
+            className="w-full sm:w-auto"
             onClick={() => setStep((s) => Math.min(DIVE_STEPS.length - 1, s + 1))}
           >
             Próximo passo
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2 sm:justify-start">
             <span className="font-display text-2xl">{hold}s</span>
             <Button
               size="lg"
@@ -463,6 +464,12 @@ function ContractTool({
     try {
       await onSign({ name, commitments: CONTRACT_LABELS });
       await save({ name, commitments: CONTRACT_LABELS });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? `Não foi possível salvar o contrato: ${error.message}`
+          : "Não foi possível salvar o contrato agora.",
+      );
     } finally {
       setSaving(false);
     }
@@ -833,7 +840,7 @@ function EscalationDiaryTool() {
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <Button
             type="button"
             size="lg"

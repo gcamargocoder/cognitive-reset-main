@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-/** Sessão persistente do usuário, mantida em sincronia com o Lovable Cloud. */
+/** Sessão persistente do usuário, mantida em sincronia com o Supabase Auth. */
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
