@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -22,14 +22,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { calculateAge, computeTierIgnoringFlag, type AccessTier } from "@/lib/access";
 
 export const Route = createFileRoute("/_authenticated/admin/dashboard")({
-  ssr: false,
-  beforeLoad: async () => {
-    const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) throw redirect({ to: "/auth" });
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", auth.user.id);
-    const isAdmin = (data ?? []).some((r) => r.role === "admin");
-    if (!isAdmin) throw redirect({ to: "/trilha" });
-  },
   component: AdminDashboardPage,
 });
 

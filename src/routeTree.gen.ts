@@ -16,6 +16,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDiarioRouteImport } from './routes/_authenticated/diario'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authenticated/admin.dashboard'
 import { Route as AuthenticatedBibliotecaIndexRouteImport } from './routes/_authenticated/biblioteca.index'
 import { Route as AuthenticatedBibliotecaSlugRouteImport } from './routes/_authenticated/biblioteca.$slug'
@@ -56,6 +57,11 @@ const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const AuthenticatedAdminDashboardRoute =
   AuthenticatedAdminDashboardRouteImport.update({
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/biblioteca/$slug': typeof AuthenticatedBibliotecaSlugRoute
   '/onboarding/perfil': typeof AuthenticatedOnboardingPerfilRoute
   '/trilha/$day': typeof AuthenticatedTrilhaDayRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/biblioteca/': typeof AuthenticatedBibliotecaIndexRoute
   '/trilha/': typeof AuthenticatedTrilhaIndexRoute
 }
@@ -111,13 +118,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/diario': typeof AuthenticatedDiarioRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/biblioteca/$slug': typeof AuthenticatedBibliotecaSlugRoute
   '/onboarding/perfil': typeof AuthenticatedOnboardingPerfilRoute
   '/trilha/$day': typeof AuthenticatedTrilhaDayRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/biblioteca': typeof AuthenticatedBibliotecaIndexRoute
   '/trilha': typeof AuthenticatedTrilhaIndexRoute
 }
@@ -134,6 +141,7 @@ export interface FileRoutesById {
   '/_authenticated/biblioteca/$slug': typeof AuthenticatedBibliotecaSlugRoute
   '/_authenticated/onboarding/perfil': typeof AuthenticatedOnboardingPerfilRoute
   '/_authenticated/trilha/$day': typeof AuthenticatedTrilhaDayRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/biblioteca/': typeof AuthenticatedBibliotecaIndexRoute
   '/_authenticated/trilha/': typeof AuthenticatedTrilhaIndexRoute
 }
@@ -150,6 +158,7 @@ export interface FileRouteTypes {
     | '/biblioteca/$slug'
     | '/onboarding/perfil'
     | '/trilha/$day'
+    | '/admin/'
     | '/biblioteca/'
     | '/trilha/'
   fileRoutesByTo: FileRoutesByTo
@@ -157,13 +166,13 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
-    | '/admin'
     | '/diario'
     | '/perfil'
     | '/admin/dashboard'
     | '/biblioteca/$slug'
     | '/onboarding/perfil'
     | '/trilha/$day'
+    | '/admin'
     | '/biblioteca'
     | '/trilha'
   id:
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/_authenticated/biblioteca/$slug'
     | '/_authenticated/onboarding/perfil'
     | '/_authenticated/trilha/$day'
+    | '/_authenticated/admin/'
     | '/_authenticated/biblioteca/'
     | '/_authenticated/trilha/'
   fileRoutesById: FileRoutesById
@@ -241,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPerfilRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/dashboard': {
       id: '/_authenticated/admin/dashboard'
       path: '/dashboard'
@@ -288,10 +305,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminDashboardRoute: typeof AuthenticatedAdminDashboardRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminDashboardRoute: AuthenticatedAdminDashboardRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
