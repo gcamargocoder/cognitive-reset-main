@@ -14,9 +14,21 @@ import { useExitConfirm } from "@/hooks/use-exit-confirm";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) throw redirect({ to: "/auth" });
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, birth_date")
+      .eq("id", data.user.id)
+      .maybeSingle();
+    const complete = Boolean(profile?.full_name?.trim() && profile?.birth_date);
+    const onOnboarding = location.pathname === "/onboarding/perfil";
+
+    if (!complete && !onOnboarding) throw redirect({ to: "/onboarding/perfil" });
+    if (complete && onOnboarding) throw redirect({ to: "/trilha" });
+
     return { user: data.user };
   },
   component: AuthenticatedLayout,

@@ -89,26 +89,53 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          birth_date: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          is_paid: boolean
           updated_at: string
+          vip_courtesy_expires_at: string | null
         }
         Insert: {
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          is_paid?: boolean
           updated_at?: string
+          vip_courtesy_expires_at?: string | null
         }
         Update: {
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          is_paid?: boolean
+          updated_at?: string
+          vip_courtesy_expires_at?: string | null
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          id: boolean
+          paywall_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          paywall_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          paywall_enabled?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -172,6 +199,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_grant_vip_courtesy: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
+      admin_list_users: {
+        Args: never
+        Returns: {
+          id: string
+          email: string | null
+          full_name: string | null
+          birth_date: string | null
+          created_at: string
+          last_sign_in_at: string | null
+          is_paid: boolean
+          vip_courtesy_expires_at: string | null
+        }[]
+      }
       bootstrap_me: { Args: never; Returns: undefined }
       has_role: {
         Args: {
