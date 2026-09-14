@@ -132,7 +132,7 @@ function BibliotecaPage() {
             <TabsTrigger
               key={session.slug}
               value={session.slug}
-              className="rounded-xl px-1 py-2 text-[11px] data-[state=active]:shadow-sm sm:text-sm"
+              className="rounded-xl px-1 py-2 text-[13px] leading-tight data-[state=active]:shadow-sm sm:text-sm"
             >
               {TAB_LABELS[session.slug] ?? session.title}
             </TabsTrigger>

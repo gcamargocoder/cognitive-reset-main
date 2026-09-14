@@ -23,10 +23,16 @@ export function useExitConfirm(enabled: boolean) {
     armedRef.current = true;
     window.history.pushState(GUARD_STATE, "");
 
+    // Não empurra um novo marcador aqui: fazer isso criava DOIS marcadores
+    // empilhados, e "Sim, sair" só conseguia voltar um passo, caindo no
+    // outro marcador e reabrindo o diálogo (parecia travado, piscando).
+    // Sem recolocar nada, "Sim, sair" (history.back()) vai direto pro que
+    // existia antes do marcador original, e "Não" (history.forward())
+    // volta pra tela de onde o usuário tentou sair — o forward-entry
+    // continua disponível porque back() nunca apaga o histórico à frente.
     const onPopState = (event: PopStateEvent) => {
       if (!isGuardState(event.state)) return;
       setOpen(true);
-      window.history.pushState(GUARD_STATE, "");
     };
 
     window.addEventListener("popstate", onPopState);
@@ -41,7 +47,10 @@ export function useExitConfirm(enabled: boolean) {
     window.history.back();
   };
 
-  const cancelExit = () => setOpen(false);
+  const cancelExit = () => {
+    setOpen(false);
+    window.history.forward();
+  };
 
   return { open, confirmExit, cancelExit };
 }
