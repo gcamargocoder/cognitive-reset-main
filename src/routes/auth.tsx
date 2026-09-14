@@ -87,14 +87,6 @@ function AuthPage() {
     }
   };
 
-  const google = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin },
-    });
-    if (error) toast.error("Não foi possível abrir o login do Google.");
-  };
-
   const reset = async () => {
     const validation = emailSchema.safeParse(email);
     if (!validation.success) {
@@ -159,10 +151,6 @@ function AuthPage() {
               </Button>
             </form>
           )}
-
-          <Button variant="outline" className="mt-3 w-full tap-scale" onClick={google}>
-            Continuar com Google
-          </Button>
 
           <div className="mt-5 flex flex-col gap-2 text-center text-sm">
             <button
