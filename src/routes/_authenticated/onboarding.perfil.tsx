@@ -45,18 +45,32 @@ function OnboardingPerfilPage() {
 
     setBusy(true);
     try {
-      await bootstrap({ data: undefined as never });
+      const { error: bootstrapError } = await bootstrap({ data: undefined as never })
+        .then(() => ({ error: null }))
+        .catch((err: unknown) => ({ error: err }));
+      if (bootstrapError) {
+        console.error("[onboarding] bootstrap_me falhou:", bootstrapError);
+        toast.error(
+          bootstrapError instanceof Error
+            ? `Não foi possível preparar sua conta: ${bootstrapError.message}`
+            : "Não foi possível preparar sua conta agora.",
+        );
+        return;
+      }
+
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) {
         toast.error("Sessão expirada. Entre novamente.");
         return;
       }
+
       const { error } = await supabase
         .from("profiles")
         .update({ full_name: name.trim(), birth_date: birthDate })
         .eq("id", auth.user.id);
       if (error) {
-        toast.error("Não foi possível salvar seus dados agora. Tente novamente.");
+        console.error("[onboarding] Falha ao salvar profiles.full_name/birth_date:", error);
+        toast.error(`Não foi possível salvar seus dados: ${error.message}`);
         return;
       }
       navigate({ to: "/trilha", replace: true });

@@ -71,7 +71,8 @@ function PerfilPage() {
       .eq("id", auth.user.id);
     setBusy(false);
     if (error) {
-      toast.error(error.message);
+      console.error("[perfil] Falha ao salvar profiles.full_name/birth_date:", error);
+      toast.error(`Não foi possível salvar: ${error.message}`);
       return;
     }
     toast.success("Perfil atualizado.");
