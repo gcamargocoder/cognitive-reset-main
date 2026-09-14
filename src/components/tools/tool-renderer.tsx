@@ -9,22 +9,53 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { JOURNAL_TEXT_MAX_LENGTH } from "@/lib/validation";
 import { ToolErrorBoundary } from "@/components/tools/tool-error-boundary";
+import { cn } from "@/lib/utils";
 import type { Technique } from "@/lib/library";
 
 type Phase = { label: string; secs: number };
 
-export function useJournalSave(kind: string, title: string, day?: number | undefined) {
+const MOODS = [
+  { emoji: "😣", label: "Muito mal", score: 1 },
+  { emoji: "😕", label: "Mal", score: 2 },
+  { emoji: "😐", label: "Neutro", score: 3 },
+  { emoji: "🙂", label: "Bem", score: 4 },
+  { emoji: "😄", label: "Muito bem", score: 5 },
+] as const;
+
+export function useJournalSave(
+  kind: string,
+  title: string,
+  day?: number | undefined,
+  onCheckInClose?: () => void,
+) {
   const [saving, setSaving] = useState(false);
+  const [checkInOpen, setCheckInOpen] = useState(false);
+  const [mood, setMood] = useState<number | null>(null);
+  const [comment, setComment] = useState("");
+  const [checkInSaving, setCheckInSaving] = useState(false);
+
+  const closeCheckIn = () => {
+    setCheckInOpen(false);
+    onCheckInClose?.();
+  };
+
   const save = async (content: Record<string, unknown>) => {
     setSaving(true);
     const { data: auth } = await supabase.auth.getUser();
     if (!auth.user) {
       setSaving(false);
       toast.error("Faça login para salvar no diário.");
-      return;
+      return false;
     }
     const { error } = await supabase.from("journal_entries").insert({
       user_id: auth.user.id,
@@ -34,17 +65,117 @@ export function useJournalSave(kind: string, title: string, day?: number | undef
       content: content as never,
     });
     setSaving(false);
-    if (error) toast.error("Não foi possível salvar agora.");
-    else toast.success("Salvo no seu diário.");
+    if (error) {
+      toast.error("Não foi possível salvar agora.");
+      return false;
+    }
+    toast.success("Salvo no seu diário.");
+    return true;
   };
-  return { save, saving };
+
+  const promptCheckIn = () => {
+    setMood(null);
+    setComment("");
+    setCheckInOpen(true);
+  };
+
+  const submitCheckIn = async () => {
+    if (mood === null && !comment.trim()) {
+      closeCheckIn();
+      return;
+    }
+    setCheckInSaving(true);
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) {
+      setCheckInSaving(false);
+      closeCheckIn();
+      return;
+    }
+    const moodInfo = MOODS.find((m) => m.score === mood);
+    const { error } = await supabase.from("journal_entries").insert({
+      user_id: auth.user.id,
+      kind: "checkin",
+      title: `${title} — como você se sentiu`,
+      day: day ?? null,
+      content: {
+        technique: title,
+        moodScore: mood,
+        moodLabel: moodInfo?.label ?? null,
+        comment: comment.trim() || null,
+      } as never,
+    });
+    setCheckInSaving(false);
+    if (!error) toast.success("Obrigado por compartilhar — isso fica no seu histórico.");
+    closeCheckIn();
+  };
+
+  const checkIn = (
+    <Dialog open={checkInOpen} onOpenChange={(next) => !next && closeCheckIn()}>
+      <DialogContent className="rounded-3xl">
+        <DialogHeader>
+          <DialogTitle>Como você está se sentindo agora?</DialogTitle>
+          <DialogDescription>
+            Depois de praticar &quot;{title}&quot;, conte como ficou. É opcional e fica só no seu
+            histórico.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex justify-between gap-1 py-2">
+          {MOODS.map((m) => (
+            <button
+              key={m.score}
+              type="button"
+              aria-label={m.label}
+              onClick={() => setMood(m.score)}
+              className={cn(
+                "flex flex-1 flex-col items-center gap-1 rounded-2xl py-3 text-2xl transition-colors",
+                mood === m.score ? "bg-primary-soft ring-2 ring-primary" : "hover:bg-muted",
+              )}
+            >
+              <span>{m.emoji}</span>
+            </button>
+          ))}
+        </div>
+        <Textarea
+          rows={3}
+          maxLength={JOURNAL_TEXT_MAX_LENGTH}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Quer contar como foi? (opcional)"
+        />
+        <div className="mt-2 flex gap-2">
+          <Button type="button" variant="ghost" className="flex-1" onClick={closeCheckIn}>
+            Agora não
+          </Button>
+          <Button
+            type="button"
+            className="flex-1 tap-scale"
+            disabled={checkInSaving || (mood === null && !comment.trim())}
+            onClick={submitCheckIn}
+          >
+            Salvar
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  return { save, saving, promptCheckIn, checkIn };
 }
 
-function BreathingTool({ pattern, cycles }: { pattern: Phase[]; cycles: number }) {
+function BreathingTool({
+  pattern,
+  cycles,
+  title,
+}: {
+  pattern: Phase[];
+  cycles: number;
+  title: string;
+}) {
   const [running, setRunning] = useState(false);
   const [phase, setPhase] = useState(0);
   const [cycle, setCycle] = useState(1);
   const [left, setLeft] = useState(pattern[0]?.secs ?? 4);
+  const { promptCheckIn, checkIn } = useJournalSave("breathing", title);
 
   useEffect(() => {
     if (!running) return;
@@ -56,6 +187,7 @@ function BreathingTool({ pattern, cycles }: { pattern: Phase[]; cycles: number }
           if (cycle >= cycles) {
             setRunning(false);
             toast.success("Prática concluída. Perceba como o corpo está agora.");
+            promptCheckIn();
             return pattern[0]!.secs;
           }
           setCycle((c) => c + 1);
@@ -65,6 +197,9 @@ function BreathingTool({ pattern, cycles }: { pattern: Phase[]; cycles: number }
       });
     }, 1000);
     return () => clearInterval(id);
+    // promptCheckIn é estável o suficiente para este efeito: sua identidade
+    // muda a cada render, mas seu comportamento não depende de nenhum estado.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, phase, cycle, cycles, pattern]);
 
   const current = pattern[phase]!;
@@ -99,6 +234,7 @@ function BreathingTool({ pattern, cycles }: { pattern: Phase[]; cycles: number }
           </Button>
         </div>
       </CardContent>
+      {checkIn}
     </Card>
   );
 }
@@ -113,9 +249,20 @@ const GROUNDING = [
 
 function GroundingTool({ day }: { day?: number | undefined }) {
   const [values, setValues] = useState<string[][]>(GROUNDING.map((g) => Array(g.count).fill("")));
-  const { save, saving } = useJournalSave("grounding", "Ancoragem 5-4-3-2-1", day);
+  const { save, saving, promptCheckIn, checkIn } = useJournalSave(
+    "grounding",
+    "Ancoragem 5-4-3-2-1",
+    day,
+  );
   const filled = values.flat().filter((v) => v.trim()).length;
   const total = values.flat().length;
+
+  const submit = async () => {
+    const ok = await save(
+      Object.fromEntries(GROUNDING.map((g, i) => [g.label, values[i]!.filter(Boolean)])),
+    );
+    if (ok) promptCheckIn();
+  };
 
   return (
     <Card>
@@ -146,14 +293,13 @@ function GroundingTool({ day }: { day?: number | undefined }) {
           size="lg"
           className="w-full tap-scale"
           disabled={saving || filled === 0}
-          onClick={() =>
-            save(Object.fromEntries(GROUNDING.map((g, i) => [g.label, values[i]!.filter(Boolean)])))
-          }
+          onClick={submit}
         >
           <Save className="mr-2 h-4 w-4" />
           Salvar no diário
         </Button>
       </CardContent>
+      {checkIn}
     </Card>
   );
 }
@@ -162,7 +308,11 @@ function BrainDumpTool({ minutes, day }: { minutes: number; day?: number | undef
   const [text, setText] = useState("");
   const [left, setLeft] = useState(minutes * 60);
   const [running, setRunning] = useState(false);
-  const { save, saving } = useJournalSave("braindump", "Descarga Mental", day);
+  const { save, saving, promptCheckIn, checkIn } = useJournalSave(
+    "braindump",
+    "Descarga Mental",
+    day,
+  );
 
   useEffect(() => {
     if (!running || left <= 0) return;
@@ -172,6 +322,11 @@ function BrainDumpTool({ minutes, day }: { minutes: number; day?: number | undef
 
   const mm = String(Math.floor(left / 60)).padStart(2, "0");
   const ss = String(left % 60).padStart(2, "0");
+
+  const submit = async () => {
+    const ok = await save({ text });
+    if (ok) promptCheckIn();
+  };
 
   return (
     <Card>
@@ -195,12 +350,13 @@ function BrainDumpTool({ minutes, day }: { minutes: number; day?: number | undef
           size="lg"
           className="w-full tap-scale"
           disabled={saving || !text.trim()}
-          onClick={() => save({ text })}
+          onClick={submit}
         >
           <Save className="mr-2 h-4 w-4" />
           Salvar no diário
         </Button>
       </CardContent>
+      {checkIn}
     </Card>
   );
 }
@@ -217,7 +373,12 @@ function PromptsTool({
   day?: number | undefined;
 }) {
   const [answers, setAnswers] = useState<string[]>(prompts.map(() => ""));
-  const { save, saving } = useJournalSave(kind, title, day);
+  const { save, saving, promptCheckIn, checkIn } = useJournalSave(kind, title, day);
+
+  const submit = async () => {
+    const ok = await save(Object.fromEntries(prompts.map((p, i) => [p, answers[i]])));
+    if (ok) promptCheckIn();
+  };
 
   return (
     <Card>
@@ -239,20 +400,22 @@ function PromptsTool({
           size="lg"
           className="w-full tap-scale"
           disabled={saving || answers.every((a) => !a.trim())}
-          onClick={() => save(Object.fromEntries(prompts.map((p, i) => [p, answers[i]])))}
+          onClick={submit}
         >
           <Save className="mr-2 h-4 w-4" />
           Salvar no diário
         </Button>
       </CardContent>
+      {checkIn}
     </Card>
   );
 }
 
-function TimerTool({ minutes }: { minutes: number }) {
+function TimerTool({ minutes, title }: { minutes: number; title: string }) {
   const [left, setLeft] = useState(minutes * 60);
   const [running, setRunning] = useState(false);
   const doneRef = useRef(false);
+  const { promptCheckIn, checkIn } = useJournalSave("timer", title);
 
   useEffect(() => {
     if (!running) return;
@@ -263,6 +426,7 @@ function TimerTool({ minutes }: { minutes: number }) {
           if (!doneRef.current) {
             doneRef.current = true;
             toast.success("Tempo concluído. Você se movimentou hoje.");
+            promptCheckIn();
           }
           return 0;
         }
@@ -270,6 +434,7 @@ function TimerTool({ minutes }: { minutes: number }) {
       });
     }, 1000);
     return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running]);
 
   return (
@@ -296,6 +461,7 @@ function TimerTool({ minutes }: { minutes: number }) {
           </Button>
         </div>
       </CardContent>
+      {checkIn}
     </Card>
   );
 }
@@ -307,10 +473,12 @@ const DIVE_STEPS = [
   "Levante devagar, respire normalmente e repita mais uma vez se ainda precisar.",
 ];
 
-function DiveTool() {
+function DiveTool({ title }: { title: string }) {
   const [step, setStep] = useState(0);
   const [hold, setHold] = useState(30);
   const [running, setRunning] = useState(false);
+  const doneRef = useRef(false);
+  const { promptCheckIn, checkIn } = useJournalSave("dive", title);
 
   useEffect(() => {
     if (!running) return;
@@ -318,12 +486,17 @@ function DiveTool() {
       setHold((h) => {
         if (h <= 1) {
           setRunning(false);
+          if (!doneRef.current) {
+            doneRef.current = true;
+            promptCheckIn();
+          }
           return 0;
         }
         return h - 1;
       });
     }, 1000);
     return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running]);
 
   return (
@@ -355,6 +528,7 @@ function DiveTool() {
               onClick={() => {
                 setHold(30);
                 setRunning(true);
+                doneRef.current = false;
               }}
             >
               Contar mergulho
@@ -365,6 +539,7 @@ function DiveTool() {
           Não use esta técnica se você tem condição cardíaca sem liberação médica.
         </p>
       </CardContent>
+      {checkIn}
     </Card>
   );
 }
@@ -372,7 +547,12 @@ function DiveTool() {
 function SurfTool() {
   const [level, setLevel] = useState(5);
   const [note, setNote] = useState("");
-  const { save, saving } = useJournalSave("surf", "Surfar a Onda");
+  const { save, saving, promptCheckIn, checkIn } = useJournalSave("surf", "Surfar a Onda");
+
+  const submit = async () => {
+    const ok = await save({ level, note });
+    if (ok) promptCheckIn();
+  };
 
   return (
     <Card>
@@ -398,16 +578,12 @@ function SurfTool() {
           placeholder="Descreva a sensação como um observador: 'sinto o peito apertado e isso está passando'."
           onChange={(e) => setNote(e.target.value)}
         />
-        <Button
-          size="lg"
-          className="w-full tap-scale"
-          disabled={saving}
-          onClick={() => save({ level, note })}
-        >
+        <Button size="lg" className="w-full tap-scale" disabled={saving} onClick={submit}>
           <Save className="mr-2 h-4 w-4" />
           Registrar a onda
         </Button>
       </CardContent>
+      {checkIn}
     </Card>
   );
 }
@@ -430,7 +606,7 @@ function ContractTool({
 }) {
   const [name, setName] = useState("");
   const [commitments, setCommitments] = useState([false, false, false, false]);
-  const { save } = useJournalSave("contract", "Contrato de Compromisso");
+  const { save, promptCheckIn, checkIn } = useJournalSave("contract", "Contrato de Compromisso");
   const [saving, setSaving] = useState(false);
 
   if (signed) {
@@ -455,6 +631,7 @@ function ContractTool({
             Assinado por <strong>{signed.name}</strong>.
           </p>
         </CardContent>
+        {checkIn}
       </Card>
     );
   }
@@ -464,6 +641,7 @@ function ContractTool({
     try {
       await onSign({ name, commitments: CONTRACT_LABELS });
       await save({ name, commitments: CONTRACT_LABELS });
+      promptCheckIn();
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -503,6 +681,7 @@ function ContractTool({
           Assinar compromisso
         </Button>
       </CardContent>
+      {checkIn}
     </Card>
   );
 }
@@ -522,7 +701,10 @@ function PmrTool() {
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   const [feltBetter, setFeltBetter] = useState<boolean | null>(null);
-  const { save, saving } = useJournalSave("irritability_pause", "Relaxamento Muscular Progressivo");
+  const { save, saving, promptCheckIn, checkIn } = useJournalSave(
+    "irritability_pause",
+    "Relaxamento Muscular Progressivo",
+  );
 
   useEffect(() => {
     if (!running) return;
@@ -545,6 +727,11 @@ function PmrTool() {
     }, 1000);
     return () => clearInterval(id);
   }, [running, tensing, group]);
+
+  const finish = async () => {
+    const ok = await save({ technique: "pmr", feltBetter });
+    if (ok) promptCheckIn();
+  };
 
   if (done) {
     return (
@@ -571,12 +758,13 @@ function PmrTool() {
             size="lg"
             className="w-full tap-scale"
             disabled={saving || feltBetter === null}
-            onClick={() => save({ technique: "pmr", feltBetter })}
+            onClick={finish}
           >
             <Save className="mr-2 h-4 w-4" />
             Concluir
           </Button>
         </CardContent>
+        {checkIn}
       </Card>
     );
   }
@@ -613,7 +801,10 @@ function SomaticScanTool() {
   const [left, setLeft] = useState(totalSecs);
   const [running, setRunning] = useState(false);
   const [feltBetter, setFeltBetter] = useState<boolean | null>(null);
-  const { save, saving } = useJournalSave("irritability_pause", "Visão Panorâmica Somática");
+  const { save, saving, promptCheckIn, checkIn } = useJournalSave(
+    "irritability_pause",
+    "Visão Panorâmica Somática",
+  );
   const stepIndex = Math.min(
     SOMATIC_STEPS.length - 1,
     Math.floor(((totalSecs - left) / totalSecs) * SOMATIC_STEPS.length),
@@ -670,7 +861,10 @@ function SomaticScanTool() {
               size="lg"
               className="w-full tap-scale"
               disabled={saving || feltBetter === null}
-              onClick={() => save({ technique: "somatic-scan", feltBetter })}
+              onClick={async () => {
+                const ok = await save({ technique: "somatic-scan", feltBetter });
+                if (ok) promptCheckIn();
+              }}
             >
               <Save className="mr-2 h-4 w-4" />
               Concluir
@@ -678,6 +872,7 @@ function SomaticScanTool() {
           </>
         ) : null}
       </CardContent>
+      {checkIn}
     </Card>
   );
 }
@@ -711,7 +906,10 @@ function EscalationDiaryTool() {
   const [neutralReframe, setNeutralReframe] = useState("");
   const [action, setAction] = useState<string | null>(null);
   const [isolation, setIsolation] = useState<string | null>(null);
-  const { save, saving } = useJournalSave("irritability_diary", "Diário de Desescalada");
+  const { save, saving, promptCheckIn, checkIn } = useJournalSave(
+    "irritability_diary",
+    "Diário de Desescalada",
+  );
 
   const canAdvance = [
     trigger.length > 0 || triggerOther.trim().length > 0,
@@ -720,8 +918,8 @@ function EscalationDiaryTool() {
     action !== null,
   ];
 
-  const submit = () =>
-    save({
+  const submit = async () => {
+    const ok = await save({
       trigger: [...trigger, ...(triggerOther.trim() ? [triggerOther.trim()] : [])],
       sensations,
       automaticThought,
@@ -729,6 +927,8 @@ function EscalationDiaryTool() {
       action,
       isolationMinutes: isolation,
     });
+    if (ok) promptCheckIn();
+  };
 
   return (
     <Card>
@@ -872,6 +1072,7 @@ function EscalationDiaryTool() {
           )}
         </div>
       </CardContent>
+      {checkIn}
     </Card>
   );
 }
@@ -916,6 +1117,7 @@ function renderTool(
         <BreathingTool
           pattern={config.pattern ?? [{ label: "Inspire", secs: 4 }]}
           cycles={config.cycles ?? 5}
+          title={technique.name}
         />
       );
     case "grounding":
@@ -923,9 +1125,9 @@ function renderTool(
     case "braindump":
       return <BrainDumpTool minutes={config.minutes ?? 10} day={day} />;
     case "timer":
-      return <TimerTool minutes={config.minutes ?? 10} />;
+      return <TimerTool minutes={config.minutes ?? 10} title={technique.name} />;
     case "dive":
-      return <DiveTool />;
+      return <DiveTool title={technique.name} />;
     case "surf":
       return <SurfTool />;
     case "contract":

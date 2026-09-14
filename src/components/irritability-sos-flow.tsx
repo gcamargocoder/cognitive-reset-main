@@ -14,7 +14,12 @@ export function IrritabilitySosFlow({ onFinish }: { onFinish: () => void }) {
   const [left, setLeft] = useState(COLD_SECS);
   const [running, setRunning] = useState(false);
   const [feltBetter, setFeltBetter] = useState<boolean | null>(null);
-  const { save, saving } = useJournalSave("irritability_sos", "SOS Irritabilidade");
+  const { save, saving, promptCheckIn, checkIn } = useJournalSave(
+    "irritability_sos",
+    "SOS Irritabilidade",
+    undefined,
+    onFinish,
+  );
 
   useEffect(() => {
     if (!running || (phase !== "cold" && phase !== "motor")) return;
@@ -119,12 +124,14 @@ export function IrritabilitySosFlow({ onFinish }: { onFinish: () => void }) {
         className="w-full tap-scale"
         disabled={saving || feltBetter === null}
         onClick={async () => {
-          await save({ feltBetter });
-          onFinish();
+          const ok = await save({ feltBetter });
+          if (ok) promptCheckIn();
+          else onFinish();
         }}
       >
         Concluir
       </Button>
+      {checkIn}
     </div>
   );
 }

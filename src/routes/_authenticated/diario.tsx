@@ -42,6 +42,7 @@ const KIND_LABELS: Record<string, string> = {
   steps: "Pequenos passos",
   surf: "Surfar a onda",
   contract: "Contrato de compromisso",
+  checkin: "Como você se sentiu",
 };
 
 function renderContent(content: unknown) {
