@@ -9,6 +9,10 @@ function isIosDevice() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
+function isAndroidDevice() {
+  return /android/i.test(navigator.userAgent);
+}
+
 function isStandaloneDisplay() {
   const nav = navigator as Navigator & { standalone?: boolean };
   return window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true;
@@ -18,10 +22,12 @@ function isStandaloneDisplay() {
 export function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     setIsIOS(isIosDevice());
+    setIsAndroid(isAndroidDevice());
     setIsStandalone(isStandaloneDisplay());
 
     const onBeforeInstallPrompt = (event: Event) => {
@@ -49,5 +55,5 @@ export function useInstallPrompt() {
     setDeferredPrompt(null);
   };
 
-  return { canInstall: deferredPrompt !== null, isIOS, isStandalone, promptInstall };
+  return { canInstall: deferredPrompt !== null, isIOS, isAndroid, isStandalone, promptInstall };
 }
